@@ -3,10 +3,14 @@ import { doc, getDoc } from 'firebase/firestore'
 import { db } from '../lib/firebase'
 import { useAuth } from '../hooks/useAuth'
 import type { User } from '../types'
+import TopicList from './TopicList'
+
+type Screen = 'home' | 'topics'
 
 export default function Home() {
   const { user, logout } = useAuth()
   const [profile, setProfile] = useState<User | null>(null)
+  const [screen, setScreen] = useState<Screen>('home')
 
   useEffect(() => {
     if (!user) return
@@ -16,6 +20,20 @@ export default function Home() {
     }
     fetch()
   }, [user])
+
+  const handleTopicSelect = (topicId: string, side: 'A' | 'B') => {
+    console.log('Selected topic:', topicId, 'Side:', side)
+    // Queue screen coming next
+  }
+
+  if (screen === 'topics') {
+    return (
+      <TopicList
+        onBack={() => setScreen('home')}
+        onTopicSelect={handleTopicSelect}
+      />
+    )
+  }
 
   return (
     <div className="min-h-screen bg-gray-950 text-white flex flex-col">
@@ -28,10 +46,7 @@ export default function Home() {
         </div>
         <div className="flex items-center gap-3">
           <span className="text-gray-400 text-sm">{profile?.username}</span>
-          <button
-            onClick={logout}
-            className="text-gray-600 hover:text-white text-sm transition"
-          >
+          <button onClick={logout} className="text-gray-600 hover:text-white text-sm transition">
             Logout
           </button>
         </div>
@@ -47,9 +62,10 @@ export default function Home() {
         </p>
 
         <div className="flex flex-col gap-4 w-full max-w-sm">
-
-          {/* Topic Mode */}
-          <button className="bg-indigo-600 hover:bg-indigo-500 transition rounded-2xl p-6 text-left group">
+          <button
+            onClick={() => setScreen('topics')}
+            className="bg-indigo-600 hover:bg-indigo-500 transition rounded-2xl p-6 text-left"
+          >
             <div className="text-2xl mb-2">🗣️</div>
             <div className="font-bold text-lg mb-1">Topic Mode</div>
             <div className="text-indigo-200 text-sm">
@@ -57,18 +73,15 @@ export default function Home() {
             </div>
           </button>
 
-          {/* Random Mode */}
-          <button className="bg-gray-900 hover:bg-gray-800 transition rounded-2xl p-6 text-left border border-gray-800 group">
+          <button className="bg-gray-900 hover:bg-gray-800 transition rounded-2xl p-6 text-left border border-gray-800">
             <div className="text-2xl mb-2">🎲</div>
             <div className="font-bold text-lg mb-1">Random Conversation</div>
             <div className="text-gray-400 text-sm">
               Get matched with someone who shares your interests. No topic, just talk.
             </div>
           </button>
-
         </div>
 
-        {/* Interests reminder */}
         {profile && (
           <div className="mt-10 flex flex-wrap gap-2 justify-center max-w-sm">
             {profile.interests.map(interest => (
@@ -86,7 +99,6 @@ export default function Home() {
           </div>
         )}
       </div>
-
     </div>
   )
 }
