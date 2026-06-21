@@ -4,13 +4,15 @@ import { db } from '../lib/firebase'
 import { useAuth } from '../hooks/useAuth'
 import type { User } from '../types'
 import TopicList from './TopicList'
+import Queue from './Queue'
 
-type Screen = 'home' | 'topics'
+type Screen = 'home' | 'topics' | 'queue'
 
 export default function Home() {
   const { user, logout } = useAuth()
   const [profile, setProfile] = useState<User | null>(null)
   const [screen, setScreen] = useState<Screen>('home')
+  const [queueTopic, setQueueTopic] = useState<{ topicId: string; side: 'A' | 'B' } | null>(null)
 
   useEffect(() => {
     if (!user) return
@@ -22,8 +24,8 @@ export default function Home() {
   }, [user])
 
   const handleTopicSelect = (topicId: string, side: 'A' | 'B') => {
-    console.log('Selected topic:', topicId, 'Side:', side)
-    // Queue screen coming next
+    setQueueTopic({ topicId, side })
+    setScreen('queue')
   }
 
   if (screen === 'topics') {
@@ -31,6 +33,20 @@ export default function Home() {
       <TopicList
         onBack={() => setScreen('home')}
         onTopicSelect={handleTopicSelect}
+      />
+    )
+  }
+
+  if (screen === 'queue' && queueTopic) {
+    return (
+      <Queue
+        topicId={queueTopic.topicId}
+        side={queueTopic.side}
+        onMatchFound={(conversationId) => {
+          console.log('Match found! Conversation:', conversationId)
+          // Conversation room coming next
+        }}
+        onCancel={() => setScreen('topics')}
       />
     )
   }
