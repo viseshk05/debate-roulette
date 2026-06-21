@@ -67,7 +67,13 @@ export function listenForMatch(
     const others = snapshot.docs.filter(d => d.id !== userId)
     if (others.length > 0) {
       const partner = others[0]
-      onMatch(partner.data().userId)
+      const partnerId = partner.data().userId
+
+      // Only the alphabetically lower userId creates the conversation
+      // This prevents both sides creating a conversation simultaneously
+      if (userId < partnerId) {
+        onMatch(partnerId)
+      }
     }
   })
 

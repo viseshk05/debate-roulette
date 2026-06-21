@@ -1,5 +1,5 @@
 import { useEffect, useState, useRef } from 'react'
-import { doc, onSnapshot, setDoc } from 'firebase/firestore'
+import { doc, onSnapshot, setDoc, deleteDoc } from 'firebase/firestore'
 import { db } from '../lib/firebase'
 import { useAuth } from '../hooks/useAuth'
 import { joinTopicQueue, leaveQueue, listenForMatch, createConversation } from '../lib/matchmaking'
@@ -31,11 +31,25 @@ export default function Queue({
   const { user } = useAuth()
   const [seconds, setSeconds] = useState(0)
   const [status, setStatus] = useState<'waiting' | 'matched'>('waiting')
-  const unsubscribeRef = useRef<(() => void) | null>(null)
+  const matchedRef = useRef(false)
+  const unsubscribeMatchRef = useRef<(() => void) | null>(null)
+  const unsubscribeNotifRef = useRef<(() => void) | null>(null)
 
   const topic = TOPICS[topicId]
   const mySide = side === 'A' ? topic.sideA : topic.sideB
   const oppositeSide = side === 'A' ? 'B' : 'A'
+
+  const handleMatch = async (convId: string) => {
+    if (matchedRef.current) return
+    matchedRef.current = true
+    setStatus('matched')
+    unsubscribeMatchRef.current?.()
+    unsubscribeNotifRef.current?.()
+    await leaveQueue(user!.uid)
+    // Clean up notification
+    await deleteDoc(doc(db, 'matchNotifications', user!.uid)).catch(() => {})
+    onMatchFound(convId)
+  }
 
   useEffect(() => {
     if (!user) return
@@ -43,43 +57,32 @@ export default function Queue({
     const setup = async () => {
       await joinTopicQueue(user.uid, topicId, side)
 
-      unsubscribeRef.current = listenForMatch(
+      // Listen for match we create (we are the lower userId)
+      unsubscribeMatchRef.current = listenForMatch(
         user.uid,
         topicId,
         oppositeSide,
         async (partnerId) => {
-          if (status === 'matched') return
-          setStatus('matched')
-
-          unsubscribeRef.current?.()
-
-          const convId = await createConversation(
-            user.uid,
-            partnerId,
-            topicId,
-            []
-          )
-
-          await Promise.all([
-            leaveQueue(user.uid),
-            leaveQueue(partnerId),
-            setDoc(doc(db, 'matchNotifications', partnerId), {
-              conversationId: convId,
-              timestamp: new Date(),
-            }),
-          ])
-
-          onMatchFound(convId)
+          if (matchedRef.current) return
+          const convId = await createConversation(user.uid, partnerId, topicId, [])
+          // Notify the partner
+          await setDoc(doc(db, 'matchNotifications', partnerId), {
+            conversationId: convId,
+            timestamp: new Date(),
+          })
+          handleMatch(convId)
         }
       )
 
-      // Also listen for when SOMEONE ELSE matched us
-      onSnapshot(doc(db, 'matchNotifications', user.uid), (snap) => {
-        if (snap.exists() && status !== 'matched') {
-          setStatus('matched')
-          onMatchFound(snap.data().conversationId)
+      // Listen for match created by partner (they are the lower userId)
+      unsubscribeNotifRef.current = onSnapshot(
+        doc(db, 'matchNotifications', user.uid),
+        (snap) => {
+          if (snap.exists() && !matchedRef.current) {
+            handleMatch(snap.data().conversationId)
+          }
         }
-      })
+      )
     }
 
     setup()
@@ -88,20 +91,22 @@ export default function Queue({
 
     return () => {
       clearInterval(timer)
-      unsubscribeRef.current?.()
-      if (status !== 'matched') leaveQueue(user!.uid)
+      unsubscribeMatchRef.current?.()
+      unsubscribeNotifRef.current?.()
+      if (!matchedRef.current) leaveQueue(user!.uid)
     }
   }, [user])
 
   const handleCancel = async () => {
-    unsubscribeRef.current?.()
+    matchedRef.current = true
+    unsubscribeMatchRef.current?.()
+    unsubscribeNotifRef.current?.()
     await leaveQueue(user!.uid)
     onCancel()
   }
 
   return (
     <div className="min-h-screen bg-gray-950 text-white flex flex-col items-center justify-center px-6 text-center">
-
       {status === 'waiting' ? (
         <>
           <div className="text-5xl mb-6 animate-pulse">🎲</div>
@@ -112,19 +117,13 @@ export default function Queue({
           <p className="text-gray-500 mb-8">
             Your side: <span className="text-indigo-400 font-semibold">{mySide}</span>
           </p>
-
           <div className="text-gray-600 text-sm mb-8">
             {seconds < 10 && 'Looking for someone nearby...'}
             {seconds >= 10 && seconds < 30 && 'Searching a wider pool...'}
             {seconds >= 30 && 'Still looking — hang tight...'}
           </div>
-
           <div className="text-gray-700 text-xs mb-8">{seconds}s</div>
-
-          <button
-            onClick={handleCancel}
-            className="text-gray-600 hover:text-white text-sm transition"
-          >
+          <button onClick={handleCancel} className="text-gray-600 hover:text-white text-sm transition">
             Cancel
           </button>
         </>
@@ -135,7 +134,6 @@ export default function Queue({
           <p className="text-gray-500">Taking you to the conversation...</p>
         </>
       )}
-
     </div>
   )
 }

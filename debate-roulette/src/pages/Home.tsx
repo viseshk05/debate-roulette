@@ -5,14 +5,16 @@ import { useAuth } from '../hooks/useAuth'
 import type { User } from '../types'
 import TopicList from './TopicList'
 import Queue from './Queue'
+import ConversationRoom from './ConversationRoom'
 
-type Screen = 'home' | 'topics' | 'queue'
+type Screen = 'home' | 'topics' | 'queue' | 'conversation'
 
 export default function Home() {
   const { user, logout } = useAuth()
   const [profile, setProfile] = useState<User | null>(null)
   const [screen, setScreen] = useState<Screen>('home')
   const [queueTopic, setQueueTopic] = useState<{ topicId: string; side: 'A' | 'B' } | null>(null)
+  const [conversationId, setConversationId] = useState<string | null>(null)
 
   useEffect(() => {
     if (!user) return
@@ -42,11 +44,23 @@ export default function Home() {
       <Queue
         topicId={queueTopic.topicId}
         side={queueTopic.side}
-        onMatchFound={(conversationId) => {
-          console.log('Match found! Conversation:', conversationId)
-          // Conversation room coming next
+        onMatchFound={(convId) => {
+          setConversationId(convId)
+          setScreen('conversation')
         }}
         onCancel={() => setScreen('topics')}
+      />
+    )
+  }
+
+  if (screen === 'conversation' && conversationId) {
+    return (
+      <ConversationRoom
+        conversationId={conversationId}
+        onEnd={() => {
+          setConversationId(null)
+          setScreen('home')
+        }}
       />
     )
   }
