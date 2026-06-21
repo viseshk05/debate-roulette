@@ -4,6 +4,7 @@ import { db } from './lib/firebase'
 import { useAuth } from './hooks/useAuth'
 import Landing from './pages/Landing'
 import Onboarding from './pages/Onboarding'
+import Home from './pages/Home'
 
 function App() {
   const { user, loading } = useAuth()
@@ -28,15 +29,7 @@ function App() {
 
   if (!user) return <Landing />
   if (!profileExists) return <Onboarding />
-
-  return (
-    <div className="min-h-screen bg-gray-950 text-white flex items-center justify-center">
-      <div className="text-center">
-        <h1 className="text-3xl font-bold mb-2">Welcome back 👋</h1>
-        <p className="text-gray-400">{user.email}</p>
-      </div>
-    </div>
-  )
+  return <Home />
 }
 
 export default App
