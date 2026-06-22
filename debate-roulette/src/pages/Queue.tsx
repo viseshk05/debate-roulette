@@ -37,7 +37,7 @@ export default function Queue({
 
   const topic = TOPICS[topicId]
   const mySide = side === 'A' ? topic.sideA : topic.sideB
-  const oppositeSide = side === 'A' ? 'B' : 'A'
+  
 
   const handleMatch = async (convId: string) => {
     if (matchedRef.current) return
@@ -59,10 +59,10 @@ export default function Queue({
 
       // Listen for match we create (we are the lower userId)
       unsubscribeMatchRef.current = listenForMatch(
-        user.uid,
-        topicId,
-        oppositeSide,
-        async (partnerId) => {
+  user.uid,
+  side,
+  topicId,
+  async (partnerId) => {
           if (matchedRef.current) return
           const convId = await createConversation(user.uid, partnerId, topicId, [])
           // Notify the partner

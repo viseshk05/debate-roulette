@@ -52,10 +52,12 @@ export async function createConversation(
 
 export function listenForMatch(
   userId: string,
+  userSide: 'A' | 'B',
   topicId: string,
-  oppositeSide: 'A' | 'B',
   onMatch: (partnerId: string) => void
 ) {
+  const oppositeSide = userSide === 'A' ? 'B' : 'A'
+
   const q = query(
     collection(db, 'matchQueue'),
     where('topicId', '==', topicId),
@@ -64,13 +66,17 @@ export function listenForMatch(
   )
 
   const unsubscribe = onSnapshot(q, (snapshot) => {
-    const others = snapshot.docs.filter(d => d.id !== userId)
-    if (others.length > 0) {
-      const partner = others[0]
+    // Filter out ourselves and anyone on the same side
+    const validPartners = snapshot.docs.filter(d => {
+      const data = d.data()
+      return d.id !== userId && data.side === oppositeSide && data.userId !== userId
+    })
+
+    if (validPartners.length > 0) {
+      const partner = validPartners[0]
       const partnerId = partner.data().userId
 
-      // Only the alphabetically lower userId creates the conversation
-      // This prevents both sides creating a conversation simultaneously
+      // Only lower userId creates the conversation to prevent race condition
       if (userId < partnerId) {
         onMatch(partnerId)
       }

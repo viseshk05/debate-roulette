@@ -1,7 +1,9 @@
 import { useEffect, useState, useRef } from 'react'
-import { collection, addDoc, onSnapshot, query, orderBy, doc, getDoc, updateDoc, serverTimestamp } from 'firebase/firestore'
+import { collection, addDoc, onSnapshot, query, orderBy, doc, getDoc, updateDoc, deleteDoc, serverTimestamp } from 'firebase/firestore'
 import { db } from '../lib/firebase'
 import { useAuth } from '../hooks/useAuth'
+import EmojiPicker from 'emoji-picker-react'
+import { Theme } from 'emoji-picker-react'
 
 const TOPICS: Record<string, { title: string; sideA: string; sideB: string }> = {
   t1: { title: 'Virat Kohli vs Rohit Sharma', sideA: 'Virat Kohli', sideB: 'Rohit Sharma' },
@@ -49,7 +51,24 @@ export default function ConversationRoom({
   const [partnerUsername, setPartnerUsername] = useState('...')
   const [topicId, setTopicId] = useState<string | null>(null)
   const [sending, setSending] = useState(false)
+  const [showEmoji, setShowEmoji] = useState(false)
+  const [hoveredMsg, setHoveredMsg] = useState<string | null>(null)
   const bottomRef = useRef<HTMLDivElement>(null)
+  const inputRef = useRef<HTMLInputElement>(null)
+
+  const playPopSound = () => {
+    const ctx = new AudioContext()
+    const oscillator = ctx.createOscillator()
+    const gainNode = ctx.createGain()
+    oscillator.connect(gainNode)
+    gainNode.connect(ctx.destination)
+    oscillator.frequency.setValueAtTime(800, ctx.currentTime)
+    oscillator.frequency.exponentialRampToValueAtTime(600, ctx.currentTime + 0.1)
+    gainNode.gain.setValueAtTime(0.3, ctx.currentTime)
+    gainNode.gain.exponentialRampToValueAtTime(0.01, ctx.currentTime + 0.1)
+    oscillator.start(ctx.currentTime)
+    oscillator.stop(ctx.currentTime + 0.1)
+  }
 
   useEffect(() => {
     const loadConversation = async () => {
@@ -57,13 +76,10 @@ export default function ConversationRoom({
       if (!snap.exists()) return
       const data = snap.data()
       setTopicId(data.topicId)
-
       const partnerId = data.participants.find((p: string) => p !== user?.uid)
       if (partnerId) {
         const partnerSnap = await getDoc(doc(db, 'users', partnerId))
-        if (partnerSnap.exists()) {
-          setPartnerUsername(partnerSnap.data().username)
-        }
+        if (partnerSnap.exists()) setPartnerUsername(partnerSnap.data().username)
       }
     }
     loadConversation()
@@ -74,8 +90,19 @@ export default function ConversationRoom({
       collection(db, 'conversations', conversationId, 'messages'),
       orderBy('timestamp', 'asc')
     )
+    let isFirst = true
     const unsub = onSnapshot(q, (snap) => {
-      setMessages(snap.docs.map(d => ({ id: d.id, ...d.data() } as Message)))
+      const newMessages = snap.docs.map(d => ({ id: d.id, ...d.data() } as Message))
+
+      if (!isFirst) {
+        const lastMsg = newMessages[newMessages.length - 1]
+        if (lastMsg && lastMsg.senderId !== user?.uid) {
+          playPopSound()
+        }
+      }
+      isFirst = false
+
+      setMessages(newMessages)
       setTimeout(() => bottomRef.current?.scrollIntoView({ behavior: 'smooth' }), 100)
     })
     return unsub
@@ -84,6 +111,7 @@ export default function ConversationRoom({
   const sendMessage = async () => {
     if (!text.trim() || !user || sending) return
     setSending(true)
+    setShowEmoji(false)
     try {
       await addDoc(collection(db, 'conversations', conversationId, 'messages'), {
         senderId: user.uid,
@@ -91,9 +119,14 @@ export default function ConversationRoom({
         timestamp: serverTimestamp(),
       })
       setText('')
+      inputRef.current?.focus()
     } finally {
       setSending(false)
     }
+  }
+
+  const deleteMessage = async (messageId: string) => {
+    await deleteDoc(doc(db, 'conversations', conversationId, 'messages', messageId))
   }
 
   const handleEnd = async () => {
@@ -125,7 +158,10 @@ export default function ConversationRoom({
       </div>
 
       {/* Messages */}
-      <div className="flex-1 overflow-y-auto px-4 py-4 flex flex-col gap-3">
+      <div
+        className="flex-1 overflow-y-auto px-4 py-4 flex flex-col gap-3"
+        onClick={() => setShowEmoji(false)}
+      >
         {messages.length === 0 && (
           <div className="text-center text-gray-700 text-sm mt-8">
             You're connected! Say hello 👋
@@ -134,8 +170,19 @@ export default function ConversationRoom({
         {messages.map(msg => (
           <div
             key={msg.id}
-            className={`flex ${msg.senderId === user?.uid ? 'justify-end' : 'justify-start'}`}
+            className={`flex items-end gap-2 ${msg.senderId === user?.uid ? 'justify-end' : 'justify-start'}`}
+            onMouseEnter={() => setHoveredMsg(msg.id)}
+            onMouseLeave={() => setHoveredMsg(null)}
           >
+            {msg.senderId === user?.uid && hoveredMsg === msg.id && (
+              <button
+                onClick={() => deleteMessage(msg.id)}
+                className="text-gray-700 hover:text-red-400 text-xs transition mb-1"
+                title="Delete message"
+              >
+                🗑️
+              </button>
+            )}
             <div
               className={`max-w-xs px-4 py-2.5 rounded-2xl text-sm ${
                 msg.senderId === user?.uid
@@ -158,7 +205,7 @@ export default function ConversationRoom({
             {suggestions.map((s, i) => (
               <button
                 key={i}
-                onClick={() => setText(s)}
+                onClick={() => { setText(s); inputRef.current?.focus() }}
                 className="whitespace-nowrap text-xs bg-gray-900 hover:bg-gray-800 text-gray-400 px-3 py-1.5 rounded-full transition border border-gray-800"
               >
                 {s}
@@ -168,9 +215,31 @@ export default function ConversationRoom({
         </div>
       )}
 
+      {/* Emoji Picker */}
+      {showEmoji && (
+        <div className="px-4 pb-2">
+          <EmojiPicker
+            theme={Theme.DARK}
+            onEmojiClick={(emojiData) => {
+              setText(prev => prev + emojiData.emoji)
+              inputRef.current?.focus()
+            }}
+            width="100%"
+            height={350}
+          />
+        </div>
+      )}
+
       {/* Input */}
-      <div className="flex items-center gap-3 px-4 py-4 border-t border-gray-900">
+      <div className="flex items-center gap-2 px-4 py-4 border-t border-gray-900">
+        <button
+          onClick={() => setShowEmoji(prev => !prev)}
+          className="text-gray-500 hover:text-white text-xl transition"
+        >
+          😊
+        </button>
         <input
+          ref={inputRef}
           type="text"
           value={text}
           onChange={e => setText(e.target.value)}
