@@ -1,5 +1,5 @@
 import { useEffect, useState } from 'react'
-import { doc, getDoc, updateDoc, arrayRemove } from 'firebase/firestore'
+import { doc, getDoc, updateDoc, arrayRemove, arrayUnion } from 'firebase/firestore'
 import { db } from '../lib/firebase'
 import { useAuth } from '../hooks/useAuth'
 import type { User } from '../types'
@@ -43,15 +43,18 @@ export default function Profile({ onBack }: { onBack: () => void }) {
       setProfile(data)
 
       if (data.friends?.length > 0) {
+        // Deduplicate friend IDs before fetching
+        const uniqueFriendIds = [...new Set(data.friends)]
         const friendDocs = await Promise.all(
-          data.friends.map(id => getDoc(doc(db, 'users', id)))
+          uniqueFriendIds.map(id => getDoc(doc(db, 'users', id)))
         )
         setFriends(friendDocs.filter(d => d.exists()).map(d => d.data() as User))
       }
 
       if (data.pendingFriendRequests?.length > 0) {
+        const uniqueRequestIds = [...new Set(data.pendingFriendRequests)]
         const requests = await Promise.all(
-          data.pendingFriendRequests.map(async (fromId: string) => {
+          uniqueRequestIds.map(async (fromId: string) => {
             const fromSnap = await getDoc(doc(db, 'users', fromId))
             return fromSnap.exists() ? { id: fromId, ...fromSnap.data() } : null
           })
@@ -66,22 +69,31 @@ export default function Profile({ onBack }: { onBack: () => void }) {
 
   const acceptFriend = async (fromId: string) => {
     if (!user || !profile) return
+
+    if (profile.friends?.includes(fromId)) {
+      setPendingRequests(prev => prev.filter(r => r.id !== fromId))
+      return
+    }
+
     await updateDoc(doc(db, 'users', user.uid), {
-      friends: [...(profile.friends || []), fromId],
+      friends: arrayUnion(fromId),
       pendingFriendRequests: arrayRemove(fromId),
     })
+
     const fromSnap = await getDoc(doc(db, 'users', fromId))
     if (fromSnap.exists()) {
-      const fromFriends = fromSnap.data().friends || []
       await updateDoc(doc(db, 'users', fromId), {
-        friends: [...fromFriends, user.uid],
+        friends: arrayUnion(user.uid),
       })
-      setFriends(prev => [...prev, fromSnap.data() as User])
+      if (!friends.find(f => f.id === fromId)) {
+        setFriends(prev => [...prev, fromSnap.data() as User])
+      }
     }
+
     setPendingRequests(prev => prev.filter(r => r.id !== fromId))
     setProfile(prev => prev ? {
       ...prev,
-      friends: [...(prev.friends || []), fromId],
+      friends: [...new Set([...(prev.friends || []), fromId])],
       pendingFriendRequests: prev.pendingFriendRequests.filter(id => id !== fromId)
     } : prev)
   }
