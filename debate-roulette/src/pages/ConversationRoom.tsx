@@ -56,8 +56,15 @@ export default function ConversationRoom({
   const bottomRef = useRef<HTMLDivElement>(null)
   const inputRef = useRef<HTMLInputElement>(null)
 
-  const playPopSound = () => {
-    const ctx = new AudioContext()
+  const audioCtxRef = useRef<AudioContext | null>(null)
+
+const playPopSound = () => {
+  try {
+    if (!audioCtxRef.current) {
+      audioCtxRef.current = new AudioContext()
+    }
+    const ctx = audioCtxRef.current
+    if (ctx.state === 'suspended') ctx.resume()
     const oscillator = ctx.createOscillator()
     const gainNode = ctx.createGain()
     oscillator.connect(gainNode)
@@ -68,7 +75,10 @@ export default function ConversationRoom({
     gainNode.gain.exponentialRampToValueAtTime(0.01, ctx.currentTime + 0.1)
     oscillator.start(ctx.currentTime)
     oscillator.stop(ctx.currentTime + 0.1)
+  } catch (e) {
+    console.log('Audio error:', e)
   }
+}
 
   useEffect(() => {
     const loadConversation = async () => {
