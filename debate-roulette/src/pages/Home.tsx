@@ -65,6 +65,20 @@ export default function Home() {
     )
   }
 
+  if (screen === 'random') {
+    return (
+      <RandomQueue
+        interests={profile?.interests || []}
+        onMatchFound={(convId) => {
+          setConversationId(convId)
+          setScreen('conversation')
+        }}
+        onCancel={() => setScreen('home')}
+        onSwitchToTopics={() => setScreen('topics')}
+      />
+    )
+  }
+
   if (screen === 'conversation' && conversationId) {
     return (
       <ConversationRoom
@@ -137,7 +151,10 @@ export default function Home() {
             </div>
           </button>
 
-          <button className="bg-gray-900 hover:bg-gray-800 transition rounded-2xl p-6 text-left border border-gray-800">
+          <button
+            onClick={() => setScreen('random')}
+            className="bg-gray-900 hover:bg-gray-800 transition rounded-2xl p-6 text-left border border-gray-800"
+          >
             <div className="text-2xl mb-2">🎲</div>
             <div className="font-bold text-lg mb-1">Random Conversation</div>
             <div className="text-gray-400 text-sm">
