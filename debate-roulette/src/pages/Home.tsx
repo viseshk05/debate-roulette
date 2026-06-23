@@ -6,8 +6,9 @@ import type { User } from '../types'
 import TopicList from './TopicList'
 import Queue from './Queue'
 import ConversationRoom from './ConversationRoom'
+import PostConversation from './PostConversation'
 
-type Screen = 'home' | 'topics' | 'queue' | 'conversation'
+type Screen = 'home' | 'topics' | 'queue' | 'conversation' | 'post'
 
 export default function Home() {
   const { user, logout } = useAuth()
@@ -15,6 +16,11 @@ export default function Home() {
   const [screen, setScreen] = useState<Screen>('home')
   const [queueTopic, setQueueTopic] = useState<{ topicId: string; side: 'A' | 'B' } | null>(null)
   const [conversationId, setConversationId] = useState<string | null>(null)
+  const [postConv, setPostConv] = useState<{
+    conversationId: string
+    partnerId: string
+    partnerUsername: string
+  } | null>(null)
 
   useEffect(() => {
     if (!user) return
@@ -57,8 +63,23 @@ export default function Home() {
     return (
       <ConversationRoom
         conversationId={conversationId}
-        onEnd={() => {
+        onEnd={(partnerId, partnerUsername) => {
+          setPostConv({ conversationId, partnerId, partnerUsername })
           setConversationId(null)
+          setScreen('post')
+        }}
+      />
+    )
+  }
+
+  if (screen === 'post' && postConv) {
+    return (
+      <PostConversation
+        conversationId={postConv.conversationId}
+        partnerId={postConv.partnerId}
+        partnerUsername={postConv.partnerUsername}
+        onDone={() => {
+          setPostConv(null)
           setScreen('home')
         }}
       />

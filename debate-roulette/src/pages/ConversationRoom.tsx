@@ -43,58 +43,74 @@ export default function ConversationRoom({
   onEnd,
 }: {
   conversationId: string
-  onEnd: () => void
+  onEnd: (partnerId: string, partnerUsername: string) => void
 }) {
   const { user } = useAuth()
   const [messages, setMessages] = useState<Message[]>([])
   const [text, setText] = useState('')
   const [partnerUsername, setPartnerUsername] = useState('...')
+  const [partnerId, setPartnerId] = useState('')
   const [topicId, setTopicId] = useState<string | null>(null)
   const [sending, setSending] = useState(false)
   const [showEmoji, setShowEmoji] = useState(false)
   const [hoveredMsg, setHoveredMsg] = useState<string | null>(null)
+  const [ended, setEnded] = useState(false)
   const bottomRef = useRef<HTMLDivElement>(null)
   const inputRef = useRef<HTMLInputElement>(null)
-
   const audioCtxRef = useRef<AudioContext | null>(null)
 
-const playPopSound = () => {
-  try {
-    if (!audioCtxRef.current) {
-      audioCtxRef.current = new AudioContext()
+  const playPopSound = () => {
+    try {
+      if (!audioCtxRef.current) {
+        audioCtxRef.current = new AudioContext()
+      }
+      const ctx = audioCtxRef.current
+      if (ctx.state === 'suspended') ctx.resume()
+      const oscillator = ctx.createOscillator()
+      const gainNode = ctx.createGain()
+      oscillator.connect(gainNode)
+      gainNode.connect(ctx.destination)
+      oscillator.frequency.setValueAtTime(800, ctx.currentTime)
+      oscillator.frequency.exponentialRampToValueAtTime(600, ctx.currentTime + 0.1)
+      gainNode.gain.setValueAtTime(0.3, ctx.currentTime)
+      gainNode.gain.exponentialRampToValueAtTime(0.01, ctx.currentTime + 0.1)
+      oscillator.start(ctx.currentTime)
+      oscillator.stop(ctx.currentTime + 0.1)
+    } catch (e) {
+      console.log('Audio error:', e)
     }
-    const ctx = audioCtxRef.current
-    if (ctx.state === 'suspended') ctx.resume()
-    const oscillator = ctx.createOscillator()
-    const gainNode = ctx.createGain()
-    oscillator.connect(gainNode)
-    gainNode.connect(ctx.destination)
-    oscillator.frequency.setValueAtTime(800, ctx.currentTime)
-    oscillator.frequency.exponentialRampToValueAtTime(600, ctx.currentTime + 0.1)
-    gainNode.gain.setValueAtTime(0.3, ctx.currentTime)
-    gainNode.gain.exponentialRampToValueAtTime(0.01, ctx.currentTime + 0.1)
-    oscillator.start(ctx.currentTime)
-    oscillator.stop(ctx.currentTime + 0.1)
-  } catch (e) {
-    console.log('Audio error:', e)
   }
-}
 
+  // Load conversation details
   useEffect(() => {
     const loadConversation = async () => {
       const snap = await getDoc(doc(db, 'conversations', conversationId))
       if (!snap.exists()) return
       const data = snap.data()
       setTopicId(data.topicId)
-      const partnerId = data.participants.find((p: string) => p !== user?.uid)
-      if (partnerId) {
-        const partnerSnap = await getDoc(doc(db, 'users', partnerId))
+      const pid = data.participants.find((p: string) => p !== user?.uid)
+      if (pid) {
+        setPartnerId(pid)
+        const partnerSnap = await getDoc(doc(db, 'users', pid))
         if (partnerSnap.exists()) setPartnerUsername(partnerSnap.data().username)
       }
     }
     loadConversation()
   }, [conversationId])
 
+  // Listen for conversation ending by either user
+  useEffect(() => {
+    const unsub = onSnapshot(doc(db, 'conversations', conversationId), (snap) => {
+      if (snap.exists() && snap.data().status === 'ended' && !ended) {
+        setEnded(true)
+        const pid = snap.data().participants.find((p: string) => p !== user?.uid)
+        onEnd(pid, partnerUsername)
+      }
+    })
+    return unsub
+  }, [conversationId, partnerUsername, ended])
+
+  // Listen for messages
   useEffect(() => {
     const q = query(
       collection(db, 'conversations', conversationId, 'messages'),
@@ -103,7 +119,6 @@ const playPopSound = () => {
     let isFirst = true
     const unsub = onSnapshot(q, (snap) => {
       const newMessages = snap.docs.map(d => ({ id: d.id, ...d.data() } as Message))
-
       if (!isFirst) {
         const lastMsg = newMessages[newMessages.length - 1]
         if (lastMsg && lastMsg.senderId !== user?.uid) {
@@ -111,7 +126,6 @@ const playPopSound = () => {
         }
       }
       isFirst = false
-
       setMessages(newMessages)
       setTimeout(() => bottomRef.current?.scrollIntoView({ behavior: 'smooth' }), 100)
     })
@@ -144,7 +158,6 @@ const playPopSound = () => {
       status: 'ended',
       endedAt: serverTimestamp(),
     })
-    onEnd()
   }
 
   const topic = topicId ? TOPICS[topicId] : null
