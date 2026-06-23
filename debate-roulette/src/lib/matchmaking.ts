@@ -8,6 +8,7 @@ import {
   where,
   serverTimestamp,
   addDoc,
+  getDocs,
 } from 'firebase/firestore'
 import { db } from './firebase'
 
@@ -28,6 +29,22 @@ export async function joinTopicQueue(
   return userId
 }
 
+export async function joinRandomQueue(
+  userId: string,
+  interests: string[]
+): Promise<void> {
+  const queueRef = doc(db, 'matchQueue', userId)
+  await setDoc(queueRef, {
+    userId,
+    mode: 'random',
+    interests,
+    topicId: null,
+    side: null,
+    status: 'waiting',
+    joinedAt: serverTimestamp(),
+  })
+}
+
 export async function leaveQueue(userId: string) {
   await deleteDoc(doc(db, 'matchQueue', userId))
 }
@@ -35,13 +52,13 @@ export async function leaveQueue(userId: string) {
 export async function createConversation(
   userId: string,
   partnerId: string,
-  topicId: string,
+  topicId: string | null,
   sharedInterests: string[]
 ): Promise<string> {
   const convRef = await addDoc(collection(db, 'conversations'), {
     participants: [userId, partnerId],
-    mode: 'topic',
-    topicId,
+    mode: topicId ? 'topic' : 'random',
+    topicId: topicId || null,
     sharedInterests,
     status: 'active',
     startedAt: serverTimestamp(),
@@ -66,7 +83,6 @@ export function listenForMatch(
   )
 
   const unsubscribe = onSnapshot(q, (snapshot) => {
-    // Filter out ourselves and anyone on the same side
     const validPartners = snapshot.docs.filter(d => {
       const data = d.data()
       return d.id !== userId && data.side === oppositeSide && data.userId !== userId
@@ -75,11 +91,50 @@ export function listenForMatch(
     if (validPartners.length > 0) {
       const partner = validPartners[0]
       const partnerId = partner.data().userId
-
-      // Only lower userId creates the conversation to prevent race condition
       if (userId < partnerId) {
         onMatch(partnerId)
       }
+    }
+  })
+
+  return unsubscribe
+}
+
+export function listenForRandomMatch(
+  userId: string,
+  userInterests: string[],
+  onMatch: (partnerId: string, sharedInterests: string[]) => void
+) {
+  const q = query(
+    collection(db, 'matchQueue'),
+    where('mode', '==', 'random'),
+    where('status', '==', 'waiting')
+  )
+
+  const unsubscribe = onSnapshot(q, (snapshot) => {
+    const others = snapshot.docs.filter(d => d.id !== userId && d.data().userId !== userId)
+
+    if (others.length === 0) return
+
+    // Score each potential match by shared interests
+    const scored = others.map(d => {
+      const data = d.data()
+      const theirInterests: string[] = data.interests || []
+      const shared = userInterests.filter(i => theirInterests.includes(i))
+      return { partnerId: data.userId, shared, score: shared.length }
+    })
+
+    // Only consider matches with at least 1 shared interest
+    const validMatches = scored.filter(m => m.score > 0)
+
+    if (validMatches.length === 0) return
+
+    // Pick the best match
+    const best = validMatches.sort((a, b) => b.score - a.score)[0]
+
+    // Only lower userId creates the conversation
+    if (userId < best.partnerId) {
+      onMatch(best.partnerId, best.shared)
     }
   })
 

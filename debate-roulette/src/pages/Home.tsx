@@ -8,8 +8,9 @@ import Queue from './Queue'
 import ConversationRoom from './ConversationRoom'
 import PostConversation from './PostConversation'
 import Profile from './Profile'
+import RandomQueue from './RandomQueue'
 
-type Screen = 'home' | 'topics' | 'queue' | 'conversation' | 'post' | 'profile'
+type Screen = 'home' | 'topics' | 'queue' | 'random' | 'conversation' | 'post' | 'profile'
 
 export default function Home() {
   const { user, logout } = useAuth()
