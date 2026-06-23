@@ -7,8 +7,9 @@ import TopicList from './TopicList'
 import Queue from './Queue'
 import ConversationRoom from './ConversationRoom'
 import PostConversation from './PostConversation'
+import Profile from './Profile'
 
-type Screen = 'home' | 'topics' | 'queue' | 'conversation' | 'post'
+type Screen = 'home' | 'topics' | 'queue' | 'conversation' | 'post' | 'profile'
 
 export default function Home() {
   const { user, logout } = useAuth()
@@ -34,6 +35,10 @@ export default function Home() {
   const handleTopicSelect = (topicId: string, side: 'A' | 'B') => {
     setQueueTopic({ topicId, side })
     setScreen('queue')
+  }
+
+  if (screen === 'profile') {
+    return <Profile onBack={() => setScreen('home')} />
   }
 
   if (screen === 'topics') {
@@ -97,8 +102,15 @@ export default function Home() {
         </div>
         <div className="flex items-center gap-3">
           <span className="text-gray-400 text-sm">{profile?.username}</span>
-          <button onClick={logout} className="text-gray-600 hover:text-white text-sm transition">
-            Logout
+          <button
+            onClick={() => setScreen('profile')}
+            className="w-9 h-9 rounded-full overflow-hidden border-2 border-gray-700 hover:border-indigo-500 transition"
+          >
+            <img
+              src={`https://api.dicebear.com/7.x/avataaars/svg?seed=${encodeURIComponent(profile?.username || 'user')}&backgroundColor=b6e3f4,c0aede,d1d4f9&mouth=smile,twinkle&eyes=happy,wink`}
+              alt="profile"
+              className="w-full h-full"
+            />
           </button>
         </div>
       </div>
