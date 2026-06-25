@@ -58,6 +58,15 @@ export default function ConversationRoom({
   const bottomRef = useRef<HTMLDivElement>(null)
   const inputRef = useRef<HTMLInputElement>(null)
   const audioCtxRef = useRef<AudioContext | null>(null)
+  const partnerUsernameRef = useRef('')
+  const partnerIdRef = useRef('')
+  const endedRef = useRef(false)
+  const userIdRef = useRef<string>('')
+
+  // Keep userIdRef in sync
+  useEffect(() => {
+    if (user?.uid) userIdRef.current = user.uid
+  }, [user?.uid])
 
   const playPopSound = () => {
     try {
@@ -83,32 +92,59 @@ export default function ConversationRoom({
 
   // Load conversation details
   useEffect(() => {
+    if (!user?.uid) return
+    userIdRef.current = user.uid
     const loadConversation = async () => {
       const snap = await getDoc(doc(db, 'conversations', conversationId))
       if (!snap.exists()) return
       const data = snap.data()
       setTopicId(data.topicId)
-      const pid = data.participants.find((p: string) => p !== user?.uid)
+
+      console.log('=== CONVERSATION DEBUG ===')
+      console.log('My UID:', userIdRef.current)
+      console.log('All participants:', data.participants)
+
+      const pid = data.participants.find((p: string) => p !== userIdRef.current)
+      console.log('Partner ID found:', pid)
+
       if (pid) {
         setPartnerId(pid)
+        partnerIdRef.current = pid
         const partnerSnap = await getDoc(doc(db, 'users', pid))
-        if (partnerSnap.exists()) setPartnerUsername(partnerSnap.data().username)
+        if (partnerSnap.exists()) {
+          const username = partnerSnap.data().username
+          console.log('Partner username:', username)
+          setPartnerUsername(username)
+          partnerUsernameRef.current = username
+        }
       }
     }
     loadConversation()
-  }, [conversationId])
+  }, [conversationId, user?.uid])
 
   // Listen for conversation ending by either user
   useEffect(() => {
-    const unsub = onSnapshot(doc(db, 'conversations', conversationId), (snap) => {
-      if (snap.exists() && snap.data().status === 'ended' && !ended) {
+    const unsub = onSnapshot(doc(db, 'conversations', conversationId), async (snap) => {
+      if (snap.exists() && snap.data().status === 'ended' && !endedRef.current) {
+        endedRef.current = true
         setEnded(true)
-        const pid = snap.data().participants.find((p: string) => p !== user?.uid)
-        onEnd(pid, partnerUsername)
+        const data = snap.data()
+        const pid = data.participants.find((p: string) => p !== userIdRef.current)
+
+        let username = partnerUsernameRef.current
+        if (!username && pid) {
+          const partnerSnap = await getDoc(doc(db, 'users', pid))
+          if (partnerSnap.exists()) {
+            username = partnerSnap.data().username
+          }
+        }
+
+        console.log('Ending - my uid:', userIdRef.current, 'partner ID:', pid, 'username:', username)
+        onEnd(pid || partnerIdRef.current, username)
       }
     })
     return unsub
-  }, [conversationId, partnerUsername, ended])
+  }, [conversationId])
 
   // Listen for messages
   useEffect(() => {
@@ -121,7 +157,7 @@ export default function ConversationRoom({
       const newMessages = snap.docs.map(d => ({ id: d.id, ...d.data() } as Message))
       if (!isFirst) {
         const lastMsg = newMessages[newMessages.length - 1]
-        if (lastMsg && lastMsg.senderId !== user?.uid) {
+        if (lastMsg && lastMsg.senderId !== userIdRef.current) {
           playPopSound()
         }
       }

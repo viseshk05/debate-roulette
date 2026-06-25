@@ -30,7 +30,21 @@ export default function PostConversation({
   const [alreadyFriends, setAlreadyFriends] = useState(false)
   const [submitted, setSubmitted] = useState(false)
   const [saving, setSaving] = useState(false)
+  const [fetchedPartnerUsername, setFetchedPartnerUsername] = useState(partnerUsername)
 
+  // Always fetch partner username fresh from Firestore
+  useEffect(() => {
+    if (!partnerId) return
+    const fetch = async () => {
+      const snap = await getDoc(doc(db, 'users', partnerId))
+      if (snap.exists()) {
+        setFetchedPartnerUsername(snap.data().username)
+      }
+    }
+    fetch()
+  }, [partnerId])
+
+  // Check if already friends
   useEffect(() => {
     if (!user) return
     const check = async () => {
@@ -108,11 +122,11 @@ export default function PostConversation({
         <div className="text-5xl mb-4">✨</div>
         <h2 className="text-2xl font-bold mb-2">Thanks for the conversation!</h2>
         <p className="text-gray-500 mb-2">
-          {selectedBadges.length > 0 && `You gave ${partnerUsername} ${selectedBadges.length} badge${selectedBadges.length > 1 ? 's' : ''}.`}
+          {selectedBadges.length > 0 && `You gave ${fetchedPartnerUsername} ${selectedBadges.length} badge${selectedBadges.length > 1 ? 's' : ''}.`}
         </p>
         {addFriend && !alreadyFriends && (
           <p className="text-indigo-400 text-sm mb-6">
-            Friend request sent to {partnerUsername} 🤝
+            Friend request sent to {fetchedPartnerUsername} 🤝
           </p>
         )}
         <button
@@ -132,12 +146,12 @@ export default function PostConversation({
           <div className="text-4xl mb-3">💬</div>
           <h2 className="text-2xl font-bold mb-1">How was it?</h2>
           <p className="text-gray-500 text-sm">
-            Your conversation with <span className="text-white font-medium">{partnerUsername}</span> has ended.
+            Your conversation with <span className="text-white font-medium">{fetchedPartnerUsername}</span> has ended.
           </p>
         </div>
 
         <div className="mb-6">
-          <p className="text-sm text-gray-400 mb-3">Give {partnerUsername} a badge (optional)</p>
+          <p className="text-sm text-gray-400 mb-3">Give {fetchedPartnerUsername} a badge (optional)</p>
           <div className="flex flex-wrap gap-2">
             {BADGES.map(badge => (
               <button
@@ -168,7 +182,7 @@ export default function PostConversation({
             <div className="flex items-center gap-3">
               <span className="text-xl">🤝</span>
               <div className="text-left">
-                <div className="font-medium text-sm">Add {partnerUsername} as a friend</div>
+                <div className="font-medium text-sm">Add {fetchedPartnerUsername} as a friend</div>
                 <div className="text-xs text-gray-500">They'll need to accept before you can message</div>
               </div>
             </div>
@@ -181,7 +195,7 @@ export default function PostConversation({
         ) : (
           <div className="w-full flex items-center gap-3 px-5 py-4 rounded-2xl border border-gray-800 bg-gray-900 mb-6">
             <span className="text-xl">✅</span>
-            <div className="text-sm text-gray-400">You're already friends with {partnerUsername}</div>
+            <div className="text-sm text-gray-400">You're already friends with {fetchedPartnerUsername}</div>
           </div>
         )}
 
