@@ -1,20 +1,54 @@
 import { useState } from 'react'
-import { useAuth } from '../hooks/useAuth'
 
 const TOPICS = [
+  // Sports
   { id: 't1', title: 'Virat Kohli vs Rohit Sharma', sideA: 'Virat Kohli', sideB: 'Rohit Sharma', category: 'Sports' },
   { id: 't2', title: 'Messi vs Ronaldo', sideA: 'Messi', sideB: 'Ronaldo', category: 'Sports' },
-  { id: 't3', title: 'Android vs iPhone', sideA: 'Android', sideB: 'iPhone', category: 'Technology' },
-  { id: 't4', title: 'Marvel vs DC', sideA: 'Marvel', sideB: 'DC', category: 'Entertainment' },
-  { id: 't5', title: 'Interstellar vs Inception', sideA: 'Interstellar', sideB: 'Inception', category: 'Entertainment' },
-  { id: 't6', title: 'Nolan vs Scorsese', sideA: 'Nolan', sideB: 'Scorsese', category: 'Entertainment' },
-  { id: 't7', title: 'PC vs Console Gaming', sideA: 'PC', sideB: 'Console', category: 'Gaming' },
-  { id: 't8', title: 'Football vs Cricket', sideA: 'Football', sideB: 'Cricket', category: 'Sports' },
-  { id: 't9', title: 'AI is good vs bad for humanity', sideA: 'Good', sideB: 'Bad', category: 'Technology' },
-  { id: 't10', title: 'Gym vs Calisthenics', sideA: 'Gym', sideB: 'Calisthenics', category: 'Lifestyle' },
+  { id: 't3', title: 'Football vs Cricket', sideA: 'Football', sideB: 'Cricket', category: 'Sports' },
+  { id: 't4', title: 'LeBron vs Jordan', sideA: 'LeBron James', sideB: 'Michael Jordan', category: 'Sports' },
+  { id: 't5', title: 'Test Cricket vs T20', sideA: 'Test Cricket', sideB: 'T20', category: 'Sports' },
+
+  // Entertainment
+  { id: 't6', title: 'Marvel vs DC', sideA: 'Marvel', sideB: 'DC', category: 'Entertainment' },
+  { id: 't7', title: 'Interstellar vs Inception', sideA: 'Interstellar', sideB: 'Inception', category: 'Entertainment' },
+  { id: 't8', title: 'Nolan vs Scorsese', sideA: 'Nolan', sideB: 'Scorsese', category: 'Entertainment' },
+  { id: 't9', title: 'Anime vs Western Cartoons', sideA: 'Anime', sideB: 'Western Cartoons', category: 'Entertainment' },
+  { id: 't10', title: 'Movies vs TV Shows', sideA: 'Movies', sideB: 'TV Shows', category: 'Entertainment' },
+
+  // Technology
+  { id: 't11', title: 'Android vs iPhone', sideA: 'Android', sideB: 'iPhone', category: 'Technology' },
+  { id: 't12', title: 'AI is good vs bad for humanity', sideA: 'Good', sideB: 'Bad', category: 'Technology' },
+  { id: 't13', title: 'Remote Work vs Office Work', sideA: 'Remote Work', sideB: 'Office Work', category: 'Technology' },
+  { id: 't14', title: 'Social Media helps vs hurts society', sideA: 'Helps', sideB: 'Hurts', category: 'Technology' },
+  { id: 't15', title: 'Electric Cars vs Petrol Cars', sideA: 'Electric', sideB: 'Petrol', category: 'Technology' },
+
+  // Gaming
+  { id: 't16', title: 'PC vs Console Gaming', sideA: 'PC', sideB: 'Console', category: 'Gaming' },
+  { id: 't17', title: 'PUBG vs Free Fire', sideA: 'PUBG', sideB: 'Free Fire', category: 'Gaming' },
+  { id: 't18', title: 'Single Player vs Multiplayer', sideA: 'Single Player', sideB: 'Multiplayer', category: 'Gaming' },
+  { id: 't19', title: 'Minecraft vs Roblox', sideA: 'Minecraft', sideB: 'Roblox', category: 'Gaming' },
+
+  // Lifestyle
+  { id: 't20', title: 'Gym vs Calisthenics', sideA: 'Gym', sideB: 'Calisthenics', category: 'Lifestyle' },
+  { id: 't21', title: 'Early Bird vs Night Owl', sideA: 'Early Bird', sideB: 'Night Owl', category: 'Lifestyle' },
+  { id: 't22', title: 'Vegetarian vs Non-Vegetarian', sideA: 'Vegetarian', sideB: 'Non-Vegetarian', category: 'Lifestyle' },
+  { id: 't23', title: 'Books vs Podcasts', sideA: 'Books', sideB: 'Podcasts', category: 'Lifestyle' },
+  { id: 't24', title: 'City Life vs Village Life', sideA: 'City Life', sideB: 'Village Life', category: 'Lifestyle' },
+
+  // Music
+  { id: 't25', title: 'Drake vs Kendrick Lamar', sideA: 'Drake', sideB: 'Kendrick Lamar', category: 'Music' },
+  { id: 't26', title: 'Hip Hop vs Rock', sideA: 'Hip Hop', sideB: 'Rock', category: 'Music' },
+  { id: 't27', title: 'Spotify vs YouTube Music', sideA: 'Spotify', sideB: 'YouTube Music', category: 'Music' },
+  { id: 't28', title: 'Live Music vs Studio Albums', sideA: 'Live Music', sideB: 'Studio Albums', category: 'Music' },
+
+  // Career
+  { id: 't29', title: 'College Degree vs Self-Taught', sideA: 'College Degree', sideB: 'Self-Taught', category: 'Career' },
+  { id: 't30', title: 'Job Security vs Startup Risk', sideA: 'Job Security', sideB: 'Startup Risk', category: 'Career' },
+  { id: 't31', title: 'Passion vs Salary', sideA: 'Follow Passion', sideB: 'Follow Salary', category: 'Career' },
+  { id: 't32', title: 'Entrepreneur vs Employee', sideA: 'Entrepreneur', sideB: 'Employee', category: 'Career' },
 ]
 
-const CATEGORIES = ['All', 'Sports', 'Entertainment', 'Technology', 'Gaming', 'Lifestyle']
+const CATEGORIES = ['All', 'Sports', 'Entertainment', 'Technology', 'Gaming', 'Lifestyle', 'Music', 'Career']
 
 type Side = 'A' | 'B' | null
 

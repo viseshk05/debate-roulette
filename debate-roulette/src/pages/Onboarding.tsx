@@ -9,6 +9,7 @@ const INTERESTS = {
   Technology: ['AI', 'Programming', 'Cybersecurity', 'Gadgets'],
   Lifestyle: ['Fitness', 'Books', 'Travel', 'Cooking', 'Photography'],
   Gaming: ['PUBG', 'Minecraft', 'Valorant', 'FIFA', 'GTA'],
+  Politics: ['Indian Politics', 'World Politics', 'Economics', 'Philosophy', 'History'],
 }
 
 const COUNTRIES = [

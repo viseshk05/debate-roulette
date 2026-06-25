@@ -5,31 +5,7 @@ import { useAuth } from '../hooks/useAuth'
 import EmojiPicker from 'emoji-picker-react'
 import { Theme } from 'emoji-picker-react'
 
-const TOPICS: Record<string, { title: string; sideA: string; sideB: string }> = {
-  t1: { title: 'Virat Kohli vs Rohit Sharma', sideA: 'Virat Kohli', sideB: 'Rohit Sharma' },
-  t2: { title: 'Messi vs Ronaldo', sideA: 'Messi', sideB: 'Ronaldo' },
-  t3: { title: 'Android vs iPhone', sideA: 'Android', sideB: 'iPhone' },
-  t4: { title: 'Marvel vs DC', sideA: 'Marvel', sideB: 'DC' },
-  t5: { title: 'Interstellar vs Inception', sideA: 'Interstellar', sideB: 'Inception' },
-  t6: { title: 'Nolan vs Scorsese', sideA: 'Nolan', sideB: 'Scorsese' },
-  t7: { title: 'PC vs Console Gaming', sideA: 'PC', sideB: 'Console' },
-  t8: { title: 'Football vs Cricket', sideA: 'Football', sideB: 'Cricket' },
-  t9: { title: 'AI is good vs bad for humanity', sideA: 'Good', sideB: 'Bad' },
-  t10: { title: 'Gym vs Calisthenics', sideA: 'Gym', sideB: 'Calisthenics' },
-}
-
-const SUGGESTIONS: Record<string, string[]> = {
-  t1: ['Who has the better ODI record?', 'Who performs better under pressure?', 'Who would you pick for a World Cup final?'],
-  t2: ['Who has more natural talent?', 'Who elevated their team more?', 'Who had the better peak season?'],
-  t3: ['Which has better privacy?', 'Which is better value for money?', 'Which ecosystem is more useful?'],
-  t4: ['Which has better character development?', 'Which cinematic universe is more consistent?', 'Best standalone film from each?'],
-  t5: ['Which had a better ending?', 'Which is more rewatchable?', 'Which had a bigger cultural impact?'],
-  t6: ['Who has more artistic range?', 'Who has the better filmography?', 'Best film from each director?'],
-  t7: ['Which has better exclusives?', 'Which is better for multiplayer?', 'Which offers more value long term?'],
-  t8: ['Which requires more skill?', 'Which is more exciting to watch?', 'Which has a bigger global impact?'],
-  t9: ['Will AI take more jobs than it creates?', 'Can AI be truly creative?', 'Should AI development be regulated?'],
-  t10: ['Which builds more functional strength?', 'Which is more accessible?', 'Which is better for long term health?'],
-}
+import { TOPICS, SUGGESTIONS } from '../lib/topics'
 
 type Message = {
   id: string

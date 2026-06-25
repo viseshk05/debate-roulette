@@ -4,18 +4,7 @@ import { db } from '../lib/firebase'
 import { useAuth } from '../hooks/useAuth'
 import { joinTopicQueue, leaveQueue, listenForMatch, createConversation } from '../lib/matchmaking'
 
-const TOPICS: Record<string, { title: string; sideA: string; sideB: string }> = {
-  t1: { title: 'Virat Kohli vs Rohit Sharma', sideA: 'Virat Kohli', sideB: 'Rohit Sharma' },
-  t2: { title: 'Messi vs Ronaldo', sideA: 'Messi', sideB: 'Ronaldo' },
-  t3: { title: 'Android vs iPhone', sideA: 'Android', sideB: 'iPhone' },
-  t4: { title: 'Marvel vs DC', sideA: 'Marvel', sideB: 'DC' },
-  t5: { title: 'Interstellar vs Inception', sideA: 'Interstellar', sideB: 'Inception' },
-  t6: { title: 'Nolan vs Scorsese', sideA: 'Nolan', sideB: 'Scorsese' },
-  t7: { title: 'PC vs Console Gaming', sideA: 'PC', sideB: 'Console' },
-  t8: { title: 'Football vs Cricket', sideA: 'Football', sideB: 'Cricket' },
-  t9: { title: 'AI is good vs bad for humanity', sideA: 'Good', sideB: 'Bad' },
-  t10: { title: 'Gym vs Calisthenics', sideA: 'Gym', sideB: 'Calisthenics' },
-}
+import { TOPICS } from '../lib/topics'
 
 export default function Queue({
   topicId,

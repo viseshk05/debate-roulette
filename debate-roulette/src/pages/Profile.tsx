@@ -43,7 +43,6 @@ export default function Profile({ onBack }: { onBack: () => void }) {
       setProfile(data)
 
       if (data.friends?.length > 0) {
-        // Deduplicate friend IDs before fetching
         const uniqueFriendIds = [...new Set(data.friends)]
         const friendDocs = await Promise.all(
           uniqueFriendIds.map(id => getDoc(doc(db, 'users', id)))
@@ -69,17 +68,14 @@ export default function Profile({ onBack }: { onBack: () => void }) {
 
   const acceptFriend = async (fromId: string) => {
     if (!user || !profile) return
-
     if (profile.friends?.includes(fromId)) {
       setPendingRequests(prev => prev.filter(r => r.id !== fromId))
       return
     }
-
     await updateDoc(doc(db, 'users', user.uid), {
       friends: arrayUnion(fromId),
       pendingFriendRequests: arrayRemove(fromId),
     })
-
     const fromSnap = await getDoc(doc(db, 'users', fromId))
     if (fromSnap.exists()) {
       await updateDoc(doc(db, 'users', fromId), {
@@ -89,7 +85,6 @@ export default function Profile({ onBack }: { onBack: () => void }) {
         setFriends(prev => [...prev, fromSnap.data() as User])
       }
     }
-
     setPendingRequests(prev => prev.filter(r => r.id !== fromId))
     setProfile(prev => prev ? {
       ...prev,
@@ -104,6 +99,17 @@ export default function Profile({ onBack }: { onBack: () => void }) {
       pendingFriendRequests: arrayRemove(fromId),
     })
     setPendingRequests(prev => prev.filter(r => r.id !== fromId))
+  }
+
+  const unfriend = async (friendId: string) => {
+    if (!user) return
+    await updateDoc(doc(db, 'users', user.uid), {
+      friends: arrayRemove(friendId),
+    })
+    await updateDoc(doc(db, 'users', friendId), {
+      friends: arrayRemove(user.uid),
+    })
+    setFriends(prev => prev.filter(f => f.id !== friendId))
   }
 
   if (activeChat) {
@@ -241,18 +247,27 @@ export default function Profile({ onBack }: { onBack: () => void }) {
             ) : (
               <div className="flex flex-col gap-3">
                 {friends.map(friend => (
-                  <button
-                    key={friend.id}
-                    onClick={() => setActiveChat({ id: friend.id, username: friend.username })}
-                    className="flex items-center gap-3 bg-gray-900 hover:bg-gray-800 px-4 py-3 rounded-xl transition w-full text-left"
-                  >
+                  <div key={friend.id} className="flex items-center gap-3 bg-gray-900 px-4 py-3 rounded-xl">
                     <Avatar username={friend.username} size={40} />
-                    <div>
+                    <div className="flex-1">
                       <p className="font-medium text-sm">{friend.username}</p>
                       <p className="text-gray-500 text-xs">{friend.country}</p>
                     </div>
-                    <span className="ml-auto text-gray-600 text-xs">Chat →</span>
-                  </button>
+                    <div className="flex gap-2">
+                      <button
+                        onClick={() => setActiveChat({ id: friend.id, username: friend.username })}
+                        className="text-xs bg-indigo-600 hover:bg-indigo-500 text-white px-3 py-1.5 rounded-lg transition"
+                      >
+                        Chat
+                      </button>
+                      <button
+                        onClick={() => unfriend(friend.id)}
+                        className="text-xs bg-gray-800 hover:bg-red-900 hover:text-red-400 text-gray-400 px-3 py-1.5 rounded-lg transition"
+                      >
+                        Unfriend
+                      </button>
+                    </div>
+                  </div>
                 ))}
               </div>
             )}
