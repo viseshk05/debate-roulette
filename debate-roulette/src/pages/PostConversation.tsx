@@ -2,15 +2,16 @@ import { useState, useEffect } from 'react'
 import { doc, setDoc, getDoc, updateDoc, arrayUnion } from 'firebase/firestore'
 import { db } from '../lib/firebase'
 import { useAuth } from '../hooks/useAuth'
+import { motion, AnimatePresence } from 'framer-motion'
 
 type BadgeType = 'respectful' | 'insightful' | 'funny' | 'greatListener' | 'knowledgeable'
 
-const BADGES: { id: BadgeType; emoji: string; label: string }[] = [
-  { id: 'respectful', emoji: '🤝', label: 'Respectful' },
-  { id: 'insightful', emoji: '💡', label: 'Insightful' },
-  { id: 'funny', emoji: '😄', label: 'Funny' },
-  { id: 'greatListener', emoji: '👂', label: 'Great Listener' },
-  { id: 'knowledgeable', emoji: '📚', label: 'Knowledgeable' },
+const BADGES: { id: BadgeType; emoji: string; label: string; desc: string }[] = [
+  { id: 'respectful', emoji: '🤝', label: 'Respectful', desc: 'Kept it civil' },
+  { id: 'insightful', emoji: '💡', label: 'Insightful', desc: 'Made me think' },
+  { id: 'funny', emoji: '😄', label: 'Funny', desc: 'Had good humor' },
+  { id: 'greatListener', emoji: '👂', label: 'Great Listener', desc: 'Actually listened' },
+  { id: 'knowledgeable', emoji: '📚', label: 'Knowledgeable', desc: 'Knew their stuff' },
 ]
 
 export default function PostConversation({
@@ -31,29 +32,28 @@ export default function PostConversation({
   const [submitted, setSubmitted] = useState(false)
   const [saving, setSaving] = useState(false)
   const [fetchedPartnerUsername, setFetchedPartnerUsername] = useState(partnerUsername)
+  const [partnerAvatar, setPartnerAvatar] = useState('')
 
-  // Always fetch partner username fresh from Firestore
   useEffect(() => {
     if (!partnerId) return
     const fetch = async () => {
       const snap = await getDoc(doc(db, 'users', partnerId))
       if (snap.exists()) {
-        setFetchedPartnerUsername(snap.data().username)
+        const username = snap.data().username
+        setFetchedPartnerUsername(username)
+        setPartnerAvatar(`https://api.dicebear.com/7.x/avataaars/svg?seed=${encodeURIComponent(username)}&backgroundColor=b6e3f4,c0aede,d1d4f9&mouth=smile,twinkle&eyes=happy,wink`)
       }
     }
     fetch()
   }, [partnerId])
 
-  // Check if already friends
   useEffect(() => {
     if (!user) return
     const check = async () => {
       const snap = await getDoc(doc(db, 'users', user.uid))
       if (snap.exists()) {
         const friends = snap.data().friends || []
-        if (friends.includes(partnerId)) {
-          setAlreadyFriends(true)
-        }
+        if (friends.includes(partnerId)) setAlreadyFriends(true)
       }
     }
     check()
@@ -119,100 +119,188 @@ export default function PostConversation({
   if (submitted) {
     return (
       <div className="min-h-screen bg-gray-950 text-white flex flex-col items-center justify-center px-6 text-center">
-        <div className="text-5xl mb-4">✨</div>
-        <h2 className="text-2xl font-bold mb-2">Thanks for the conversation!</h2>
-        <p className="text-gray-500 mb-2">
-          {selectedBadges.length > 0 && `You gave ${fetchedPartnerUsername} ${selectedBadges.length} badge${selectedBadges.length > 1 ? 's' : ''}.`}
-        </p>
-        {addFriend && !alreadyFriends && (
-          <p className="text-indigo-400 text-sm mb-6">
-            Friend request sent to {fetchedPartnerUsername} 🤝
-          </p>
-        )}
-        <button
-          onClick={onDone}
-          className="bg-indigo-600 hover:bg-indigo-500 text-white font-semibold px-8 py-3 rounded-xl transition mt-4"
+        <div className="fixed inset-0 pointer-events-none">
+          <div className="absolute top-0 left-1/2 -translate-x-1/2 w-[400px] h-[300px] bg-indigo-600 opacity-5 blur-3xl rounded-full" />
+        </div>
+        <motion.div
+          initial={{ opacity: 0, scale: 0.9 }}
+          animate={{ opacity: 1, scale: 1 }}
+          className="relative z-10 flex flex-col items-center"
         >
-          Back to Home
-        </button>
+          <motion.div
+            initial={{ scale: 0 }}
+            animate={{ scale: 1 }}
+            transition={{ type: 'spring', bounce: 0.5, delay: 0.1 }}
+            className="text-6xl mb-6"
+          >
+            ✨
+          </motion.div>
+          <h2 className="text-2xl font-bold mb-2">That's a wrap!</h2>
+          <p className="text-gray-500 text-sm mb-1">
+            Great conversation with{' '}
+            <span className="text-white font-medium">{fetchedPartnerUsername}</span>.
+          </p>
+          {selectedBadges.length > 0 && (
+            <p className="text-indigo-400 text-sm mb-1">
+              You gave {selectedBadges.length} badge{selectedBadges.length > 1 ? 's' : ''} 🏅
+            </p>
+          )}
+          {addFriend && !alreadyFriends && (
+            <p className="text-green-400 text-sm mb-6">
+              Friend request sent 🤝
+            </p>
+          )}
+          <motion.button
+            whileHover={{ scale: 1.02 }}
+            whileTap={{ scale: 0.97 }}
+            onClick={onDone}
+            className="mt-6 bg-indigo-600 hover:bg-indigo-500 text-white font-semibold px-8 py-3 rounded-xl transition shadow-lg shadow-indigo-500/20"
+          >
+            Back to Home
+          </motion.button>
+        </motion.div>
       </div>
     )
   }
 
   return (
-    <div className="min-h-screen bg-gray-950 text-white flex flex-col items-center justify-center px-6">
-      <div className="w-full max-w-sm">
-        <div className="text-center mb-8">
-          <div className="text-4xl mb-3">💬</div>
-          <h2 className="text-2xl font-bold mb-1">How was it?</h2>
-          <p className="text-gray-500 text-sm">
-            Your conversation with <span className="text-white font-medium">{fetchedPartnerUsername}</span> has ended.
-          </p>
-        </div>
+    <div className="min-h-screen bg-gray-950 text-white flex flex-col">
 
-        <div className="mb-6">
-          <p className="text-sm text-gray-400 mb-3">Give {fetchedPartnerUsername} a badge (optional)</p>
-          <div className="flex flex-wrap gap-2">
-            {BADGES.map(badge => (
+      {/* Background */}
+      <div className="fixed inset-0 pointer-events-none">
+        <div className="absolute top-0 left-1/2 -translate-x-1/2 w-[400px] h-[300px] bg-indigo-600 opacity-5 blur-3xl rounded-full" />
+      </div>
+
+      <div className="relative z-10 flex-1 overflow-y-auto">
+        <div className="max-w-sm mx-auto px-6 py-10">
+
+          {/* Partner info */}
+          <motion.div
+            initial={{ opacity: 0, y: 16 }}
+            animate={{ opacity: 1, y: 0 }}
+            className="flex flex-col items-center text-center mb-8"
+          >
+            {partnerAvatar && (
+              <img
+                src={partnerAvatar}
+                className="w-16 h-16 rounded-full bg-gray-800 border-2 border-indigo-500/30 mb-4"
+              />
+            )}
+            <h2 className="text-2xl font-bold mb-1">How was it?</h2>
+            <p className="text-gray-500 text-sm">
+              Your conversation with{' '}
+              <span className="text-white font-medium">{fetchedPartnerUsername}</span>{' '}
+              has ended.
+            </p>
+          </motion.div>
+
+          {/* Badges */}
+          <motion.div
+            initial={{ opacity: 0, y: 16 }}
+            animate={{ opacity: 1, y: 0 }}
+            transition={{ delay: 0.1 }}
+            className="mb-6"
+          >
+            <p className="text-xs text-gray-500 uppercase tracking-wider mb-3">
+              Give a badge — optional
+            </p>
+            <div className="grid grid-cols-1 gap-2">
+              {BADGES.map((badge, i) => (
+                <motion.button
+                  key={badge.id}
+                  initial={{ opacity: 0, x: -10 }}
+                  animate={{ opacity: 1, x: 0 }}
+                  transition={{ delay: 0.1 + i * 0.05 }}
+                  whileTap={{ scale: 0.97 }}
+                  onClick={() => toggleBadge(badge.id)}
+                  className={`flex items-center gap-3 px-4 py-3 rounded-xl border transition text-left ${
+                    selectedBadges.includes(badge.id)
+                      ? 'bg-indigo-950 border-indigo-500/50 text-white shadow-lg shadow-indigo-500/10'
+                      : 'bg-gray-900/80 border-white/5 text-gray-300 hover:border-white/10'
+                  }`}
+                >
+                  <span className="text-xl">{badge.emoji}</span>
+                  <div className="flex-1">
+                    <p className="font-medium text-sm">{badge.label}</p>
+                    <p className="text-xs text-gray-500">{badge.desc}</p>
+                  </div>
+                  <div className={`w-5 h-5 rounded-full border-2 flex items-center justify-center transition flex-shrink-0 ${
+                    selectedBadges.includes(badge.id)
+                      ? 'border-indigo-400 bg-indigo-500'
+                      : 'border-gray-700'
+                  }`}>
+                    {selectedBadges.includes(badge.id) && (
+                      <div className="w-2 h-2 bg-white rounded-full" />
+                    )}
+                  </div>
+                </motion.button>
+              ))}
+            </div>
+          </motion.div>
+
+          {/* Friend section */}
+          <motion.div
+            initial={{ opacity: 0, y: 16 }}
+            animate={{ opacity: 1, y: 0 }}
+            transition={{ delay: 0.3 }}
+            className="mb-8"
+          >
+            {!alreadyFriends ? (
               <button
-                key={badge.id}
-                onClick={() => toggleBadge(badge.id)}
-                className={`flex items-center gap-2 px-4 py-2 rounded-full text-sm font-medium transition ${
-                  selectedBadges.includes(badge.id)
-                    ? 'bg-indigo-600 text-white'
-                    : 'bg-gray-800 text-gray-300 hover:bg-gray-700'
+                onClick={() => setAddFriend(prev => !prev)}
+                className={`w-full flex items-center justify-between px-4 py-4 rounded-xl border transition ${
+                  addFriend
+                    ? 'border-green-500/50 bg-green-950/30 text-white'
+                    : 'border-white/5 bg-gray-900/80 text-gray-300 hover:border-white/10'
                 }`}
               >
-                <span>{badge.emoji}</span>
-                <span>{badge.label}</span>
+                <div className="flex items-center gap-3">
+                  <span className="text-xl">🤝</span>
+                  <div className="text-left">
+                    <p className="font-medium text-sm">Add {fetchedPartnerUsername}</p>
+                    <p className="text-xs text-gray-500">Send a friend request</p>
+                  </div>
+                </div>
+                <div className={`w-5 h-5 rounded-full border-2 flex items-center justify-center transition ${
+                  addFriend ? 'border-green-400 bg-green-500' : 'border-gray-700'
+                }`}>
+                  {addFriend && <div className="w-2 h-2 bg-white rounded-full" />}
+                </div>
               </button>
-            ))}
-          </div>
-        </div>
-
-        {!alreadyFriends ? (
-          <button
-            onClick={() => setAddFriend(prev => !prev)}
-            className={`w-full flex items-center justify-between px-5 py-4 rounded-2xl border transition mb-6 ${
-              addFriend
-                ? 'border-indigo-500 bg-indigo-950 text-white'
-                : 'border-gray-800 bg-gray-900 text-gray-300 hover:border-gray-700'
-            }`}
-          >
-            <div className="flex items-center gap-3">
-              <span className="text-xl">🤝</span>
-              <div className="text-left">
-                <div className="font-medium text-sm">Add {fetchedPartnerUsername} as a friend</div>
-                <div className="text-xs text-gray-500">They'll need to accept before you can message</div>
+            ) : (
+              <div className="w-full flex items-center gap-3 px-4 py-4 rounded-xl border border-white/5 bg-gray-900/80">
+                <span className="text-xl">✅</span>
+                <div className="text-sm text-gray-400">
+                  Already friends with {fetchedPartnerUsername}
+                </div>
               </div>
-            </div>
-            <div className={`w-5 h-5 rounded-full border-2 flex items-center justify-center transition ${
-              addFriend ? 'border-indigo-400 bg-indigo-500' : 'border-gray-600'
-            }`}>
-              {addFriend && <div className="w-2 h-2 bg-white rounded-full" />}
-            </div>
-          </button>
-        ) : (
-          <div className="w-full flex items-center gap-3 px-5 py-4 rounded-2xl border border-gray-800 bg-gray-900 mb-6">
-            <span className="text-xl">✅</span>
-            <div className="text-sm text-gray-400">You're already friends with {fetchedPartnerUsername}</div>
-          </div>
-        )}
+            )}
+          </motion.div>
 
-        <div className="flex flex-col gap-3">
-          <button
-            onClick={handleSubmit}
-            disabled={saving}
-            className="w-full bg-indigo-600 hover:bg-indigo-500 disabled:opacity-50 text-white font-semibold py-3 rounded-xl transition"
+          {/* Actions */}
+          <motion.div
+            initial={{ opacity: 0 }}
+            animate={{ opacity: 1 }}
+            transition={{ delay: 0.4 }}
+            className="flex flex-col gap-3"
           >
-            {saving ? 'Saving...' : 'Submit'}
-          </button>
-          <button
-            onClick={onDone}
-            className="w-full text-gray-600 hover:text-white text-sm py-3 transition"
-          >
-            Skip
-          </button>
+            <motion.button
+              whileHover={{ scale: 1.02 }}
+              whileTap={{ scale: 0.97 }}
+              onClick={handleSubmit}
+              disabled={saving}
+              className="w-full bg-indigo-600 hover:bg-indigo-500 disabled:opacity-50 text-white font-semibold py-3.5 rounded-xl transition shadow-lg shadow-indigo-500/20"
+            >
+              {saving ? 'Saving...' : 'Submit & Continue'}
+            </motion.button>
+            <button
+              onClick={onDone}
+              className="w-full text-gray-600 hover:text-gray-400 text-sm py-2.5 transition"
+            >
+              Skip for now
+            </button>
+          </motion.div>
+
         </div>
       </div>
     </div>

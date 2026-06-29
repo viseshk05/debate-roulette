@@ -4,6 +4,7 @@ import { db } from '../lib/firebase'
 import { useAuth } from '../hooks/useAuth'
 import type { User } from '../types'
 import FriendChat from './FriendChat'
+import { motion } from 'framer-motion'
 
 const BADGE_INFO = {
   respectful: { emoji: '🤝', label: 'Respectful' },
@@ -78,9 +79,7 @@ export default function Profile({ onBack }: { onBack: () => void }) {
     })
     const fromSnap = await getDoc(doc(db, 'users', fromId))
     if (fromSnap.exists()) {
-      await updateDoc(doc(db, 'users', fromId), {
-        friends: arrayUnion(user.uid),
-      })
+      await updateDoc(doc(db, 'users', fromId), { friends: arrayUnion(user.uid) })
       if (!friends.find(f => f.id === fromId)) {
         setFriends(prev => [...prev, fromSnap.data() as User])
       }
@@ -95,20 +94,14 @@ export default function Profile({ onBack }: { onBack: () => void }) {
 
   const declineFriend = async (fromId: string) => {
     if (!user) return
-    await updateDoc(doc(db, 'users', user.uid), {
-      pendingFriendRequests: arrayRemove(fromId),
-    })
+    await updateDoc(doc(db, 'users', user.uid), { pendingFriendRequests: arrayRemove(fromId) })
     setPendingRequests(prev => prev.filter(r => r.id !== fromId))
   }
 
   const unfriend = async (friendId: string) => {
     if (!user) return
-    await updateDoc(doc(db, 'users', user.uid), {
-      friends: arrayRemove(friendId),
-    })
-    await updateDoc(doc(db, 'users', friendId), {
-      friends: arrayRemove(user.uid),
-    })
+    await updateDoc(doc(db, 'users', user.uid), { friends: arrayRemove(friendId) })
+    await updateDoc(doc(db, 'users', friendId), { friends: arrayRemove(user.uid) })
     setFriends(prev => prev.filter(f => f.id !== friendId))
   }
 
@@ -125,7 +118,13 @@ export default function Profile({ onBack }: { onBack: () => void }) {
   if (loading) {
     return (
       <div className="min-h-screen bg-gray-950 text-white flex items-center justify-center">
-        <p className="text-gray-500">Loading profile...</p>
+        <motion.div
+          animate={{ rotate: 360 }}
+          transition={{ duration: 1, repeat: Infinity, ease: 'linear' }}
+          className="text-3xl"
+        >
+          🎲
+        </motion.div>
       </div>
     )
   }
@@ -137,37 +136,67 @@ export default function Profile({ onBack }: { onBack: () => void }) {
   return (
     <div className="min-h-screen bg-gray-950 text-white flex flex-col">
 
+      {/* Background */}
+      <div className="fixed inset-0 pointer-events-none">
+        <div className="absolute top-0 left-1/2 -translate-x-1/2 w-[500px] h-[200px] bg-indigo-600 opacity-5 blur-3xl rounded-full" />
+      </div>
+
       {/* Header */}
-      <div className="flex items-center gap-3 px-6 py-4 border-b border-gray-900">
-        <button onClick={onBack} className="text-gray-500 hover:text-white transition">
+      <div className="relative z-10 flex items-center gap-3 px-6 py-4 border-b border-white/5">
+        <button
+          onClick={onBack}
+          className="w-8 h-8 flex items-center justify-center rounded-lg bg-gray-900 hover:bg-gray-800 text-gray-400 hover:text-white transition"
+        >
           ←
         </button>
         <h1 className="font-bold text-lg">Profile</h1>
       </div>
 
       {/* Avatar + Info */}
-      <div className="flex flex-col items-center pt-8 pb-6 px-6 border-b border-gray-900">
-        <Avatar username={profile.username} size={90} />
-        <h2 className="text-xl font-bold mt-4">{profile.username}</h2>
-        <p className="text-gray-500 text-sm mt-1">{profile.country}</p>
-        <div className="flex items-center gap-2 mt-2">
-          <span className="text-indigo-400 text-sm font-medium">{totalBadges} badges earned</span>
+      <motion.div
+        initial={{ opacity: 0, y: 16 }}
+        animate={{ opacity: 1, y: 0 }}
+        className="relative z-10 flex flex-col items-center pt-8 pb-6 px-6 border-b border-white/5"
+      >
+        <div className="relative mb-4">
+          <Avatar username={profile.username} size={90} />
+          <div className="absolute -bottom-1 -right-1 w-6 h-6 bg-green-500 rounded-full border-2 border-gray-950 flex items-center justify-center">
+            <span className="text-xs">✓</span>
+          </div>
         </div>
-        <div className="mt-3 px-4 py-1.5 bg-indigo-900 text-indigo-300 rounded-full text-sm font-medium ring-1 ring-indigo-500">
+        <h2 className="text-xl font-bold">{profile.username}</h2>
+        <p className="text-gray-500 text-sm mt-1">{profile.country}</p>
+
+        <div className="flex items-center gap-4 mt-4">
+          <div className="text-center">
+            <p className="text-lg font-bold text-indigo-400">{totalBadges}</p>
+            <p className="text-xs text-gray-500">Badges</p>
+          </div>
+          <div className="w-px h-8 bg-gray-800" />
+          <div className="text-center">
+            <p className="text-lg font-bold text-indigo-400">{friends.length}</p>
+            <p className="text-xs text-gray-500">Friends</p>
+          </div>
+          <div className="w-px h-8 bg-gray-800" />
+          <div className="text-center">
+            <p className="text-lg font-bold text-indigo-400">{profile.interests.length}</p>
+            <p className="text-xs text-gray-500">Interests</p>
+          </div>
+        </div>
+
+        <div className="mt-4 px-4 py-1.5 bg-indigo-900/50 text-indigo-300 rounded-full text-sm font-medium border border-indigo-500/30">
           ⭐ {profile.favoriteInterest}
         </div>
-      </div>
+      </motion.div>
 
       {/* Tabs */}
-      <div className="flex border-b border-gray-900">
+      <div className="relative z-10 flex border-b border-white/5">
         {(['profile', 'friends', 'requests'] as const).map(t => (
           <button
             key={t}
             onClick={() => setTab(t)}
-            className={`flex-1 py-3 text-sm font-medium capitalize transition ${
-              tab === t
-                ? 'text-white border-b-2 border-indigo-500'
-                : 'text-gray-600 hover:text-gray-400'
+            className={`flex-1 py-3 text-sm font-medium capitalize transition relative ${
+              tab === t ? 'text-white' : 'text-gray-600 hover:text-gray-400'
             }`}
           >
             {t === 'requests'
@@ -175,34 +204,55 @@ export default function Profile({ onBack }: { onBack: () => void }) {
               : t === 'friends'
               ? `Friends${friends.length > 0 ? ` (${friends.length})` : ''}`
               : 'Profile'}
+            {tab === t && (
+              <motion.div
+                layoutId="tabIndicator"
+                className="absolute bottom-0 left-0 right-0 h-0.5 bg-indigo-500"
+              />
+            )}
           </button>
         ))}
       </div>
 
       {/* Tab Content */}
-      <div className="flex-1 overflow-y-auto px-6 py-6">
+      <div className="relative z-10 flex-1 overflow-y-auto px-6 py-6">
 
         {/* Profile Tab */}
         {tab === 'profile' && (
-          <div className="flex flex-col gap-6">
+          <motion.div
+            initial={{ opacity: 0 }}
+            animate={{ opacity: 1 }}
+            className="flex flex-col gap-6"
+          >
             <div>
-              <p className="text-xs text-gray-500 uppercase tracking-wider mb-3">Badges</p>
+              <p className="text-xs text-gray-500 uppercase tracking-wider mb-3">Badges earned</p>
               <div className="flex flex-col gap-2">
-                {Object.entries(BADGE_INFO).map(([key, info]) => {
+                {Object.entries(BADGE_INFO).map(([key, info], i) => {
                   const count = profile.badges?.[key as keyof typeof profile.badges] || 0
                   return (
-                    <div
+                    <motion.div
                       key={key}
-                      className={`flex items-center justify-between px-4 py-3 rounded-xl bg-gray-900 ${count === 0 ? 'opacity-40' : ''}`}
+                      initial={{ opacity: 0, x: -10 }}
+                      animate={{ opacity: 1, x: 0 }}
+                      transition={{ delay: i * 0.05 }}
+                      className={`flex items-center justify-between px-4 py-3 rounded-xl border transition ${
+                        count > 0
+                          ? 'bg-gray-900/80 border-white/5'
+                          : 'bg-gray-900/40 border-white/5 opacity-40'
+                      }`}
                     >
                       <div className="flex items-center gap-3">
                         <span className="text-xl">{info.emoji}</span>
                         <span className="text-sm font-medium">{info.label}</span>
                       </div>
-                      <span className={`text-sm font-bold ${count > 0 ? 'text-indigo-400' : 'text-gray-700'}`}>
-                        {count > 0 ? `×${count}` : '—'}
-                      </span>
-                    </div>
+                      {count > 0 ? (
+                        <span className="text-sm font-bold text-indigo-400 bg-indigo-500/10 px-2.5 py-1 rounded-full">
+                          ×{count}
+                        </span>
+                      ) : (
+                        <span className="text-xs text-gray-700">Not yet</span>
+                      )}
+                    </motion.div>
                   )
                 })}
               </div>
@@ -214,13 +264,13 @@ export default function Profile({ onBack }: { onBack: () => void }) {
                 {profile.interests.map(interest => (
                   <span
                     key={interest}
-                    className={`px-3 py-1.5 rounded-full text-sm font-medium ${
+                    className={`px-3 py-1.5 rounded-full text-sm font-medium border ${
                       interest === profile.favoriteInterest
-                        ? 'bg-indigo-900 text-indigo-300 ring-1 ring-indigo-500'
-                        : 'bg-gray-900 text-gray-400'
+                        ? 'bg-indigo-900/50 text-indigo-300 border-indigo-500/30'
+                        : 'bg-gray-900/80 text-gray-400 border-white/5'
                     }`}
                   >
-                    {interest}
+                    {interest === profile.favoriteInterest ? '⭐ ' : ''}{interest}
                   </span>
                 ))}
               </div>
@@ -228,66 +278,80 @@ export default function Profile({ onBack }: { onBack: () => void }) {
 
             <button
               onClick={logout}
-              className="w-full py-3 rounded-xl border border-gray-800 text-gray-500 hover:text-red-400 hover:border-red-900 transition text-sm mt-2"
+              className="w-full py-3 rounded-xl border border-white/5 bg-gray-900/80 text-gray-500 hover:text-red-400 hover:border-red-900/50 transition text-sm mt-2"
             >
               Log out
             </button>
-          </div>
+          </motion.div>
         )}
 
         {/* Friends Tab */}
         {tab === 'friends' && (
-          <div>
+          <motion.div initial={{ opacity: 0 }} animate={{ opacity: 1 }}>
             {friends.length === 0 ? (
-              <div className="text-center text-gray-600 text-sm mt-8">
-                <p className="text-3xl mb-3">🤝</p>
-                <p>No friends yet.</p>
-                <p className="mt-1">Have a great conversation and add someone!</p>
+              <div className="flex flex-col items-center text-center mt-12 gap-3">
+                <div className="text-4xl">🤝</div>
+                <p className="text-gray-500 text-sm">No friends yet</p>
+                <p className="text-gray-700 text-xs max-w-xs">
+                  Have a great conversation and add someone — they show up here.
+                </p>
               </div>
             ) : (
               <div className="flex flex-col gap-3">
-                {friends.map(friend => (
-                  <div key={friend.id} className="flex items-center gap-3 bg-gray-900 px-4 py-3 rounded-xl">
+                {friends.map((friend, i) => (
+                  <motion.div
+                    key={friend.id}
+                    initial={{ opacity: 0, y: 10 }}
+                    animate={{ opacity: 1, y: 0 }}
+                    transition={{ delay: i * 0.05 }}
+                    className="flex items-center gap-3 bg-gray-900/80 border border-white/5 px-4 py-3 rounded-xl"
+                  >
                     <Avatar username={friend.username} size={40} />
-                    <div className="flex-1">
+                    <div className="flex-1 min-w-0">
                       <p className="font-medium text-sm">{friend.username}</p>
                       <p className="text-gray-500 text-xs">{friend.country}</p>
                     </div>
-                    <div className="flex gap-2">
+                    <div className="flex gap-2 flex-shrink-0">
                       <button
                         onClick={() => setActiveChat({ id: friend.id, username: friend.username })}
-                        className="text-xs bg-indigo-600 hover:bg-indigo-500 text-white px-3 py-1.5 rounded-lg transition"
+                        className="text-xs bg-indigo-600 hover:bg-indigo-500 text-white px-3 py-1.5 rounded-lg transition font-medium"
                       >
                         Chat
                       </button>
                       <button
                         onClick={() => unfriend(friend.id)}
-                        className="text-xs bg-gray-800 hover:bg-red-900 hover:text-red-400 text-gray-400 px-3 py-1.5 rounded-lg transition"
+                        className="text-xs bg-gray-800 hover:bg-red-900/50 hover:text-red-400 text-gray-500 px-3 py-1.5 rounded-lg transition"
                       >
                         Unfriend
                       </button>
                     </div>
-                  </div>
+                  </motion.div>
                 ))}
               </div>
             )}
-          </div>
+          </motion.div>
         )}
 
         {/* Requests Tab */}
         {tab === 'requests' && (
-          <div>
+          <motion.div initial={{ opacity: 0 }} animate={{ opacity: 1 }}>
             {pendingRequests.length === 0 ? (
-              <div className="text-center text-gray-600 text-sm mt-8">
-                <p className="text-3xl mb-3">📭</p>
-                <p>No pending friend requests.</p>
+              <div className="flex flex-col items-center text-center mt-12 gap-3">
+                <div className="text-4xl">📭</div>
+                <p className="text-gray-500 text-sm">No pending requests</p>
               </div>
             ) : (
               <div className="flex flex-col gap-3">
-                {pendingRequests.map(req => (
-                  <div key={req.id} className="bg-gray-900 px-4 py-4 rounded-xl">
+                {pendingRequests.map((req, i) => (
+                  <motion.div
+                    key={req.id}
+                    initial={{ opacity: 0, y: 10 }}
+                    animate={{ opacity: 1, y: 0 }}
+                    transition={{ delay: i * 0.05 }}
+                    className="bg-gray-900/80 border border-white/5 px-4 py-4 rounded-xl"
+                  >
                     <div className="flex items-center gap-3 mb-3">
-                      <Avatar username={req.username} size={40} />
+                      <Avatar username={req.username} size={44} />
                       <div>
                         <p className="font-medium text-sm">{req.username}</p>
                         <p className="text-gray-500 text-xs">{req.country}</p>
@@ -296,22 +360,22 @@ export default function Profile({ onBack }: { onBack: () => void }) {
                     <div className="flex gap-2">
                       <button
                         onClick={() => acceptFriend(req.id)}
-                        className="flex-1 bg-indigo-600 hover:bg-indigo-500 text-white text-sm font-medium py-2 rounded-lg transition"
+                        className="flex-1 bg-indigo-600 hover:bg-indigo-500 text-white text-sm font-medium py-2.5 rounded-lg transition"
                       >
                         Accept
                       </button>
                       <button
                         onClick={() => declineFriend(req.id)}
-                        className="flex-1 bg-gray-800 hover:bg-gray-700 text-gray-300 text-sm font-medium py-2 rounded-lg transition"
+                        className="flex-1 bg-gray-800 hover:bg-gray-700 text-gray-300 text-sm font-medium py-2.5 rounded-lg transition"
                       >
                         Decline
                       </button>
                     </div>
-                  </div>
+                  </motion.div>
                 ))}
               </div>
             )}
-          </div>
+          </motion.div>
         )}
 
       </div>

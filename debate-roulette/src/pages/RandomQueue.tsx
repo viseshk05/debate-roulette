@@ -3,6 +3,7 @@ import { doc, onSnapshot, setDoc, deleteDoc } from 'firebase/firestore'
 import { db } from '../lib/firebase'
 import { useAuth } from '../hooks/useAuth'
 import { joinRandomQueue, leaveQueue, listenForRandomMatch, createConversation } from '../lib/matchmaking'
+import { motion, AnimatePresence } from 'framer-motion'
 
 export default function RandomQueue({
   interests,
@@ -37,13 +38,10 @@ export default function RandomQueue({
 
   useEffect(() => {
     if (!user) return
-
     const setup = async () => {
       await joinRandomQueue(user.uid, interests)
-
       unsubscribeMatchRef.current = listenForRandomMatch(
-        user.uid,
-        interests,
+        user.uid, interests,
         async (partnerId, shared) => {
           if (matchedRef.current) return
           const convId = await createConversation(user.uid, partnerId, null, shared)
@@ -55,24 +53,17 @@ export default function RandomQueue({
           handleMatch(convId, shared)
         }
       )
-
       unsubscribeNotifRef.current = onSnapshot(
         doc(db, 'matchNotifications', user.uid),
         (snap) => {
           if (snap.exists() && !matchedRef.current) {
-            handleMatch(
-              snap.data().conversationId,
-              snap.data().sharedInterests || []
-            )
+            handleMatch(snap.data().conversationId, snap.data().sharedInterests || [])
           }
         }
       )
     }
-
     setup()
-
     const timer = setInterval(() => setSeconds(s => s + 1), 1000)
-
     return () => {
       clearInterval(timer)
       unsubscribeMatchRef.current?.()
@@ -89,70 +80,142 @@ export default function RandomQueue({
     onCancel()
   }
 
-  const showSwitchSuggestion = seconds >= 60 && status === 'waiting'
+  const statusText = () => {
+    if (seconds < 15) return 'Searching for a great match...'
+    if (seconds < 40) return 'Expanding the search...'
+    if (seconds < 60) return 'Good matches take time...'
+    return 'Taking longer than usual...'
+  }
 
   return (
-    <div className="min-h-screen bg-gray-950 text-white flex flex-col items-center justify-center px-6 text-center">
-      {status === 'waiting' ? (
-        <>
-          <div className="text-5xl mb-6 animate-pulse">🎲</div>
-          <h2 className="text-2xl font-bold mb-2">Finding someone interesting...</h2>
-          <p className="text-gray-500 mb-6 max-w-xs">
-            Looking for someone who shares your interests
-          </p>
+    <div className="min-h-screen bg-gray-950 text-white flex flex-col items-center justify-center px-6">
 
-          {/* User's interests */}
-          <div className="flex flex-wrap gap-2 justify-center mb-8 max-w-xs">
-            {interests.map(i => (
-              <span key={i} className="px-3 py-1 bg-gray-900 text-gray-400 rounded-full text-xs">
-                {i}
-              </span>
-            ))}
-          </div>
+      {/* Background */}
+      <div className="fixed inset-0 pointer-events-none">
+        <div className="absolute top-0 left-1/2 -translate-x-1/2 w-[400px] h-[300px] bg-indigo-600 opacity-5 blur-3xl rounded-full" />
+      </div>
 
-          <div className="text-gray-600 text-sm mb-2">
-            {seconds < 15 && 'Searching for a great match...'}
-            {seconds >= 15 && seconds < 40 && 'Expanding the search...'}
-            {seconds >= 40 && seconds < 60 && 'Still looking — good matches take time...'}
-            {seconds >= 60 && 'Taking longer than usual...'}
-          </div>
-
-          <div className="text-gray-700 text-xs mb-8">{seconds}s</div>
-
-          {/* Switch to Topic Mode suggestion after 60s */}
-          {showSwitchSuggestion && (
-            <div className="bg-gray-900 border border-gray-800 rounded-2xl p-5 mb-6 max-w-xs">
-              <p className="text-sm text-gray-300 mb-3">
-                Not finding a match? Topic Mode has more people waiting right now.
-              </p>
-              <button
-                onClick={onSwitchToTopics}
-                className="w-full bg-indigo-600 hover:bg-indigo-500 text-white text-sm font-semibold py-2.5 rounded-xl transition"
-              >
-                Switch to Topic Mode
-              </button>
-            </div>
-          )}
-
-          <button
-            onClick={handleCancel}
-            className="text-gray-600 hover:text-white text-sm transition"
+      <AnimatePresence mode="wait">
+        {status === 'waiting' ? (
+          <motion.div
+            key="waiting"
+            initial={{ opacity: 0, y: 20 }}
+            animate={{ opacity: 1, y: 0 }}
+            exit={{ opacity: 0, y: -20 }}
+            className="relative z-10 flex flex-col items-center text-center max-w-sm w-full"
           >
-            Cancel
-          </button>
-        </>
-      ) : (
-        <>
-          <div className="text-5xl mb-6">🎉</div>
-          <h2 className="text-2xl font-bold mb-2">Found someone!</h2>
-          {sharedInterests.length > 0 && (
-            <p className="text-gray-400 text-sm mb-2">
-              You both like: <span className="text-indigo-400 font-medium">{sharedInterests.join(', ')}</span>
+            {/* Spinning dice */}
+            <motion.div
+              animate={{ rotate: 360 }}
+              transition={{ duration: 2, repeat: Infinity, ease: 'linear' }}
+              className="text-6xl mb-8"
+            >
+              🎲
+            </motion.div>
+
+            <h2 className="text-2xl font-bold mb-2">Finding someone interesting...</h2>
+            <p className="text-gray-500 text-sm mb-8">
+              Matching you with someone who shares your interests
             </p>
-          )}
-          <p className="text-gray-500 text-sm">Taking you to the conversation...</p>
-        </>
-      )}
+
+            {/* Interests */}
+            <div className="w-full bg-gray-900/80 border border-white/5 rounded-2xl p-4 mb-8">
+              <p className="text-xs text-gray-500 mb-3 uppercase tracking-wider text-left">Matching on</p>
+              <div className="flex flex-wrap gap-2">
+                {interests.map((interest, i) => (
+                  <motion.span
+                    key={interest}
+                    initial={{ opacity: 0, scale: 0.8 }}
+                    animate={{ opacity: 1, scale: 1 }}
+                    transition={{ delay: i * 0.05 }}
+                    className="px-3 py-1.5 bg-indigo-500/10 border border-indigo-500/20 text-indigo-400 rounded-full text-xs font-medium"
+                  >
+                    {interest}
+                  </motion.span>
+                ))}
+              </div>
+            </div>
+
+            {/* Status */}
+            <motion.p
+              key={statusText()}
+              initial={{ opacity: 0 }}
+              animate={{ opacity: 1 }}
+              className="text-gray-600 text-sm mb-2"
+            >
+              {statusText()}
+            </motion.p>
+            <p className="text-gray-800 text-xs mb-8 font-mono">{seconds}s</p>
+
+            {/* Progress dots */}
+            <div className="flex gap-1.5 mb-8">
+              {[0, 1, 2].map(i => (
+                <motion.div
+                  key={i}
+                  animate={{ opacity: [0.3, 1, 0.3] }}
+                  transition={{ duration: 1.2, repeat: Infinity, delay: i * 0.4 }}
+                  className="w-2 h-2 rounded-full bg-indigo-500"
+                />
+              ))}
+            </div>
+
+            {/* Switch suggestion after 60s */}
+            <AnimatePresence>
+              {seconds >= 60 && (
+                <motion.div
+                  initial={{ opacity: 0, y: 10 }}
+                  animate={{ opacity: 1, y: 0 }}
+                  className="w-full bg-gray-900 border border-white/5 rounded-2xl p-4 mb-6"
+                >
+                  <p className="text-sm text-gray-300 mb-3">
+                    Not finding a match? Try Topic Mode instead.
+                  </p>
+                  <button
+                    onClick={onSwitchToTopics}
+                    className="w-full bg-indigo-600 hover:bg-indigo-500 text-white text-sm font-semibold py-2.5 rounded-xl transition"
+                  >
+                    Switch to Topic Mode
+                  </button>
+                </motion.div>
+              )}
+            </AnimatePresence>
+
+            <button
+              onClick={handleCancel}
+              className="text-gray-600 hover:text-white text-sm transition px-4 py-2 rounded-lg hover:bg-gray-900"
+            >
+              Cancel search
+            </button>
+          </motion.div>
+        ) : (
+          <motion.div
+            key="matched"
+            initial={{ opacity: 0, scale: 0.9 }}
+            animate={{ opacity: 1, scale: 1 }}
+            className="relative z-10 flex flex-col items-center text-center"
+          >
+            <motion.div
+              initial={{ scale: 0 }}
+              animate={{ scale: 1 }}
+              transition={{ type: 'spring', bounce: 0.5 }}
+              className="text-6xl mb-6"
+            >
+              🎉
+            </motion.div>
+            <h2 className="text-2xl font-bold mb-2">Found someone!</h2>
+            {sharedInterests.length > 0 && (
+              <div className="flex flex-wrap gap-2 justify-center mt-3 mb-4">
+                {sharedInterests.map(i => (
+                  <span key={i} className="px-3 py-1 bg-indigo-500/10 border border-indigo-500/20 text-indigo-400 rounded-full text-xs">
+                    {i}
+                  </span>
+                ))}
+              </div>
+            )}
+            <p className="text-gray-500 text-sm">Taking you to the conversation...</p>
+          </motion.div>
+        )}
+      </AnimatePresence>
     </div>
   )
 }

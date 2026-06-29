@@ -1,6 +1,6 @@
 import { useState } from 'react'
+import { motion } from 'framer-motion'
 import { useAuth } from '../hooks/useAuth'
-
 
 type AuthMode = 'landing' | 'login' | 'signup'
 
@@ -11,31 +11,23 @@ export default function Landing() {
   const [password, setPassword] = useState('')
   const [error, setError] = useState('')
   const [loading, setLoading] = useState(false)
-  console.log('loading state:', loading)
 
   const handleGoogle = async () => {
-  setError('')
-  setLoading(true)
-  try {
-    await signInWithGoogle()
-  } catch (err: any) {
-    console.log('Google error:', err)
-    setError(err.code + ': ' + err.message)
-  } finally {
-    setLoading(false)
+    setError('')
+    setLoading(true)
+    try {
+      await signInWithGoogle()
+    } catch (err: any) {
+      setError(err.code + ': ' + err.message)
+    } finally {
+      setLoading(false)
+    }
   }
-}
 
   const handleEmailAuth = async () => {
     setError('')
-    if (!email || !password) {
-      setError('Please fill in all fields')
-      return
-    }
-    if (password.length < 6) {
-      setError('Password must be at least 6 characters')
-      return
-    }
+    if (!email || !password) { setError('Please fill in all fields'); return }
+    if (password.length < 6) { setError('Password must be at least 6 characters'); return }
     setLoading(true)
     try {
       if (mode === 'signup') {
@@ -57,61 +49,113 @@ export default function Landing() {
     return (
       <div className="min-h-screen bg-gray-950 text-white flex flex-col">
         <div className="flex-1 flex flex-col items-center justify-center px-6 text-center">
-          <div className="mb-6 text-5xl">🎲</div>
-          <h1 className="text-4xl font-bold mb-3">Debate Roulette</h1>
-          <p className="text-gray-400 text-lg mb-2 max-w-md">
-            Have real conversations with real people about things that actually matter to you.
-          </p>
-          <p className="text-gray-600 text-sm mb-10 max-w-sm">
-            No followers. No feeds. No likes. Just ideas.
-          </p>
 
-          <div className="flex flex-col gap-3 w-full max-w-xs">
-            <button
+          <motion.div
+            initial={{ scale: 0.5, opacity: 0 }}
+            animate={{ scale: 1, opacity: 1 }}
+            transition={{ duration: 0.5, ease: 'backOut' }}
+            className="text-6xl mb-6"
+          >
+            🎲
+          </motion.div>
+
+          <motion.h1
+            initial={{ opacity: 0, y: 20 }}
+            animate={{ opacity: 1, y: 0 }}
+            transition={{ delay: 0.1, duration: 0.4 }}
+            className="text-4xl font-bold mb-3"
+          >
+            Debate Roulette
+          </motion.h1>
+
+          <motion.p
+            initial={{ opacity: 0, y: 20 }}
+            animate={{ opacity: 1, y: 0 }}
+            transition={{ delay: 0.2, duration: 0.4 }}
+            className="text-gray-400 text-lg mb-2 max-w-md"
+          >
+            Have real conversations with real people about things that actually matter to you.
+          </motion.p>
+
+          <motion.p
+            initial={{ opacity: 0 }}
+            animate={{ opacity: 1 }}
+            transition={{ delay: 0.3, duration: 0.4 }}
+            className="text-gray-600 text-sm mb-10 max-w-sm"
+          >
+            No followers. No feeds. No likes. Just ideas.
+          </motion.p>
+
+          <motion.div
+            initial={{ opacity: 0, y: 20 }}
+            animate={{ opacity: 1, y: 0 }}
+            transition={{ delay: 0.4, duration: 0.4 }}
+            className="flex flex-col gap-3 w-full max-w-xs"
+          >
+            <motion.button
+              whileHover={{ scale: 1.02 }}
+              whileTap={{ scale: 0.97 }}
               onClick={handleGoogle}
               disabled={loading}
               className="flex items-center justify-center gap-3 bg-white text-gray-900 font-semibold py-3 px-6 rounded-xl hover:bg-gray-100 transition disabled:opacity-50"
             >
               <img src="https://www.gstatic.com/firebasejs/ui/2.0.0/images/auth/google.svg" className="w-5 h-5" />
               Continue with Google
-            </button>
+            </motion.button>
 
-            <button
+            <motion.button
+              whileHover={{ scale: 1.02 }}
+              whileTap={{ scale: 0.97 }}
               onClick={() => setMode('signup')}
               className="bg-indigo-600 hover:bg-indigo-500 text-white font-semibold py-3 px-6 rounded-xl transition"
             >
               Sign up with Email
-            </button>
+            </motion.button>
 
-            <button
+            <motion.button
+              whileHover={{ scale: 1.02 }}
+              whileTap={{ scale: 0.97 }}
               onClick={() => setMode('login')}
               className="text-gray-400 hover:text-white py-3 px-6 rounded-xl transition text-sm"
             >
               Already have an account? Log in
-            </button>
-          </div>
+            </motion.button>
+          </motion.div>
         </div>
 
-        <div className="flex justify-center gap-8 py-8 text-center">
-          <div>
-            <div className="text-2xl font-bold text-indigo-400">Ideas</div>
-            <div className="text-gray-500 text-xs">over appearances</div>
-          </div>
-          <div>
-            <div className="text-2xl font-bold text-indigo-400">Respect</div>
-            <div className="text-gray-500 text-xs">over competition</div>
-          </div>
-          <div>
-            <div className="text-2xl font-bold text-indigo-400">Connection</div>
-            <div className="text-gray-500 text-xs">over engagement</div>
-          </div>
-        </div>
+        <motion.div
+          initial={{ opacity: 0 }}
+          animate={{ opacity: 1 }}
+          transition={{ delay: 0.6, duration: 0.5 }}
+          className="flex justify-center gap-8 py-8 text-center"
+        >
+          {[
+            { value: 'Ideas', label: 'over appearances' },
+            { value: 'Respect', label: 'over competition' },
+            { value: 'Connection', label: 'over engagement' },
+          ].map((item, i) => (
+            <motion.div
+              key={item.value}
+              initial={{ opacity: 0, y: 10 }}
+              animate={{ opacity: 1, y: 0 }}
+              transition={{ delay: 0.6 + i * 0.1 }}
+            >
+              <div className="text-2xl font-bold text-indigo-400">{item.value}</div>
+              <div className="text-gray-500 text-xs">{item.label}</div>
+            </motion.div>
+          ))}
+        </motion.div>
       </div>
     )
   }
 
   return (
-    <div className="min-h-screen bg-gray-950 text-white flex flex-col items-center justify-center px-6">
+    <motion.div
+      initial={{ opacity: 0, x: 20 }}
+      animate={{ opacity: 1, x: 0 }}
+      transition={{ duration: 0.3 }}
+      className="min-h-screen bg-gray-950 text-white flex flex-col items-center justify-center px-6"
+    >
       <div className="w-full max-w-sm">
         <button
           onClick={() => setMode('landing')}
@@ -145,16 +189,24 @@ export default function Landing() {
           />
 
           {error && (
-            <p className="text-red-400 text-sm">{error}</p>
+            <motion.p
+              initial={{ opacity: 0, y: -4 }}
+              animate={{ opacity: 1, y: 0 }}
+              className="text-red-400 text-sm"
+            >
+              {error}
+            </motion.p>
           )}
 
-          <button
+          <motion.button
+            whileHover={{ scale: 1.02 }}
+            whileTap={{ scale: 0.97 }}
             onClick={handleEmailAuth}
             disabled={loading}
             className="bg-indigo-600 hover:bg-indigo-500 text-white font-semibold py-3 rounded-xl transition disabled:opacity-50 mt-1"
           >
             {loading ? 'Please wait...' : mode === 'signup' ? 'Create Account' : 'Log In'}
-          </button>
+          </motion.button>
 
           <div className="flex items-center gap-3 my-2">
             <div className="flex-1 h-px bg-gray-800" />
@@ -162,14 +214,16 @@ export default function Landing() {
             <div className="flex-1 h-px bg-gray-800" />
           </div>
 
-          <button
+          <motion.button
+            whileHover={{ scale: 1.02 }}
+            whileTap={{ scale: 0.97 }}
             onClick={handleGoogle}
             disabled={loading}
             className="flex items-center justify-center gap-3 bg-white text-gray-900 font-semibold py-3 px-6 rounded-xl hover:bg-gray-100 transition disabled:opacity-50"
           >
             <img src="https://www.gstatic.com/firebasejs/ui/2.0.0/images/auth/google.svg" className="w-5 h-5" />
             Continue with Google
-          </button>
+          </motion.button>
 
           <button
             onClick={() => setMode(mode === 'signup' ? 'login' : 'signup')}
@@ -179,6 +233,6 @@ export default function Landing() {
           </button>
         </div>
       </div>
-    </div>
+    </motion.div>
   )
 }
