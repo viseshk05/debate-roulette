@@ -2,7 +2,7 @@ import { useState, useEffect } from 'react'
 import { doc, setDoc, getDoc, updateDoc, arrayUnion } from 'firebase/firestore'
 import { db } from '../lib/firebase'
 import { useAuth } from '../hooks/useAuth'
-import { motion, AnimatePresence } from 'framer-motion'
+import { motion } from 'framer-motion'
 
 type BadgeType = 'respectful' | 'insightful' | 'funny' | 'greatListener' | 'knowledgeable'
 

@@ -49,28 +49,19 @@ const CATEGORY_ICONS: Record<string, string> = {
 
 const CATEGORIES = ['All', 'Sports', 'Entertainment', 'Technology', 'Gaming', 'Lifestyle', 'Music', 'Career']
 
-type Side = 'A' | 'B' | null
-
 export default function TopicList({ onBack, onTopicSelect }: {
   onBack: () => void
   onTopicSelect: (topicId: string, side: 'A' | 'B') => void
 }) {
   const [selectedCategory, setSelectedCategory] = useState('All')
   const [selectedTopic, setSelectedTopic] = useState<string | null>(null)
-  const [selectedSide, setSelectedSide] = useState<Side>(null)
 
   const filtered = TOPICS.filter(t =>
     selectedCategory === 'All' || t.category === selectedCategory
   )
 
   const handleTopicClick = (id: string) => {
-    if (selectedTopic === id) {
-      setSelectedTopic(null)
-      setSelectedSide(null)
-    } else {
-      setSelectedTopic(id)
-      setSelectedSide(null)
-    }
+    setSelectedTopic(selectedTopic === id ? null : id)
   }
 
   const handleJoin = (topicId: string, side: 'A' | 'B') => {
@@ -104,7 +95,7 @@ export default function TopicList({ onBack, onTopicSelect }: {
         {CATEGORIES.map(cat => (
           <button
             key={cat}
-            onClick={() => { setSelectedCategory(cat); setSelectedTopic(null); setSelectedSide(null) }}
+            onClick={() => { setSelectedCategory(cat); setSelectedTopic(null) }}
             className={`flex items-center gap-1.5 px-4 py-2 rounded-full text-sm font-medium whitespace-nowrap transition ${
               selectedCategory === cat
                 ? 'bg-indigo-600 text-white shadow-lg shadow-indigo-500/20'
@@ -135,7 +126,6 @@ export default function TopicList({ onBack, onTopicSelect }: {
                     : 'border-white/5 bg-gray-900/80 hover:border-white/10 hover:bg-gray-900'
                 }`}
               >
-                {/* Topic Header — always visible */}
                 <button
                   onClick={() => handleTopicClick(t.id)}
                   className="w-full p-5 text-left"
@@ -161,7 +151,6 @@ export default function TopicList({ onBack, onTopicSelect }: {
                   </div>
                 </button>
 
-                {/* Inline side selection — expands when topic clicked */}
                 <AnimatePresence>
                   {isExpanded && (
                     <motion.div

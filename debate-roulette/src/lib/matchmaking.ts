@@ -8,7 +8,7 @@ import {
   where,
   serverTimestamp,
   addDoc,
-  getDocs,
+  
 } from 'firebase/firestore'
 import { db } from './firebase'
 
