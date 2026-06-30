@@ -6,6 +6,7 @@ import EmojiPicker from 'emoji-picker-react'
 import { Theme } from 'emoji-picker-react'
 import { motion, AnimatePresence } from 'framer-motion'
 import { TOPICS, SUGGESTIONS } from '../lib/topics'
+import ReportModal from '../components/ReportModal'
 
 type Message = {
   id: string
@@ -26,11 +27,13 @@ export default function ConversationRoom({
   const [text, setText] = useState('')
   const [partnerUsername, setPartnerUsername] = useState('...')
   const [partnerAvatar, setPartnerAvatar] = useState('')
+  const [partnerId, setPartnerId] = useState('')
   const [topicId, setTopicId] = useState<string | null>(null)
   const [sending, setSending] = useState(false)
   const [showEmoji, setShowEmoji] = useState(false)
   const [hoveredMsg, setHoveredMsg] = useState<string | null>(null)
   const [showEndConfirm, setShowEndConfirm] = useState(false)
+  const [showReport, setShowReport] = useState(false)
   const [duration, setDuration] = useState(0)
   const bottomRef = useRef<HTMLDivElement>(null)
   const inputRef = useRef<HTMLInputElement>(null)
@@ -44,7 +47,6 @@ export default function ConversationRoom({
     if (user?.uid) userIdRef.current = user.uid
   }, [user?.uid])
 
-  // Timer
   useEffect(() => {
     const interval = setInterval(() => setDuration(d => d + 1), 1000)
     return () => clearInterval(interval)
@@ -84,6 +86,7 @@ export default function ConversationRoom({
       setTopicId(data.topicId)
       const pid = data.participants.find((p: string) => p !== userIdRef.current)
       if (pid) {
+        setPartnerId(pid)
         partnerIdRef.current = pid
         const partnerSnap = await getDoc(doc(db, 'users', pid))
         if (partnerSnap.exists()) {
@@ -193,12 +196,19 @@ export default function ConversationRoom({
           </div>
         </div>
 
-        <div className="flex items-center gap-3">
+        <div className="flex items-center gap-2">
           {topic && (
             <div className="hidden sm:block max-w-xs">
               <p className="text-xs text-gray-500 truncate">{topic.title}</p>
             </div>
           )}
+          <button
+            onClick={() => setShowReport(true)}
+            className="text-xs font-medium text-gray-500 hover:text-gray-300 bg-gray-800/50 hover:bg-gray-800 px-3 py-1.5 rounded-lg transition"
+            title="Report this user"
+          >
+            🚩
+          </button>
           <button
             onClick={() => setShowEndConfirm(true)}
             className="text-xs font-medium text-red-400 hover:text-red-300 bg-red-500/10 hover:bg-red-500/20 px-3 py-1.5 rounded-lg transition"
@@ -250,7 +260,6 @@ export default function ConversationRoom({
                 onMouseEnter={() => setHoveredMsg(msg.id)}
                 onMouseLeave={() => setHoveredMsg(null)}
               >
-                {/* Partner avatar */}
                 {!isMe && (
                   <div className="w-6 flex-shrink-0">
                     {showAvatar && partnerAvatar && (
@@ -259,7 +268,6 @@ export default function ConversationRoom({
                   </div>
                 )}
 
-                {/* Delete button */}
                 {isMe && hoveredMsg === msg.id && (
                   <motion.button
                     initial={{ opacity: 0 }}
@@ -396,6 +404,16 @@ export default function ConversationRoom({
           </motion.div>
         )}
       </AnimatePresence>
+
+      {/* Report Modal */}
+      {showReport && (
+        <ReportModal
+          reportedUserId={partnerId}
+          reportedUsername={partnerUsername}
+          conversationId={conversationId}
+          onClose={() => setShowReport(false)}
+        />
+      )}
 
     </div>
   )
