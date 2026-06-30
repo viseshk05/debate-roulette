@@ -1,5 +1,5 @@
-import { useState } from 'react'
-import { doc, setDoc } from 'firebase/firestore'
+import { useState, useEffect } from 'react'
+import { doc, setDoc, getDoc, runTransaction } from 'firebase/firestore'
 import { db } from '../lib/firebase'
 import { useAuth } from '../hooks/useAuth'
 
@@ -26,6 +26,29 @@ export default function Onboarding() {
   const [favoriteInterest, setFavoriteInterest] = useState('')
   const [error, setError] = useState('')
   const [saving, setSaving] = useState(false)
+  const [checkingUsername, setCheckingUsername] = useState(false)
+  const [usernameAvailable, setUsernameAvailable] = useState<boolean | null>(null)
+
+  // Debounced username availability check
+  useEffect(() => {
+    const trimmed = username.trim().toLowerCase()
+    if (trimmed.length < 3) {
+      setUsernameAvailable(null)
+      return
+    }
+    setCheckingUsername(true)
+    const timeout = setTimeout(async () => {
+      try {
+        const snap = await getDoc(doc(db, 'usernames', trimmed))
+        setUsernameAvailable(!snap.exists())
+      } catch (e) {
+        setUsernameAvailable(null)
+      } finally {
+        setCheckingUsername(false)
+      }
+    }, 500)
+    return () => clearTimeout(timeout)
+  }, [username])
 
   const toggleInterest = (interest: string) => {
     setSelectedInterests(prev =>
@@ -41,6 +64,9 @@ export default function Onboarding() {
   const handleStep1 = () => {
     if (!username.trim()) { setError('Please enter a username'); return }
     if (username.trim().length < 3) { setError('Username must be at least 3 characters'); return }
+    if (!/^[a-zA-Z0-9_]+$/.test(username.trim())) { setError('Username can only contain letters, numbers, and underscores'); return }
+    if (usernameAvailable === false) { setError('This username is already taken'); return }
+    if (usernameAvailable === null) { setError('Please wait while we check username availability'); return }
     if (!country) { setError('Please select your country'); return }
     setError('')
     setStep(2)
@@ -55,22 +81,46 @@ export default function Onboarding() {
   const handleFinish = async () => {
     if (!favoriteInterest) { setError('Please pick your favorite interest'); return }
     setSaving(true)
+    const trimmedUsername = username.trim()
+    const usernameKey = trimmedUsername.toLowerCase()
+
     try {
-      await setDoc(doc(db, 'users', user!.uid), {
-        id: user!.uid,
-        username: username.trim(),
-        country,
-        interests: selectedInterests,
-        favoriteInterest,
-        badges: { respectful: 0, insightful: 0, funny: 0, greatListener: 0, knowledgeable: 0 },
-        friends: [],
-        pendingFriendRequests: [],
-        createdAt: new Date(),
-        isOnline: true,
-        lastSeen: new Date(),
+      // Atomic transaction — claims username + creates profile together
+      await runTransaction(db, async (transaction) => {
+        const usernameRef = doc(db, 'usernames', usernameKey)
+        const usernameSnap = await transaction.get(usernameRef)
+
+        if (usernameSnap.exists()) {
+          throw new Error('USERNAME_TAKEN')
+        }
+
+        transaction.set(usernameRef, {
+          uid: user!.uid,
+          createdAt: new Date(),
+        })
+
+        transaction.set(doc(db, 'users', user!.uid), {
+          id: user!.uid,
+          username: trimmedUsername,
+          country,
+          interests: selectedInterests,
+          favoriteInterest,
+          badges: { respectful: 0, insightful: 0, funny: 0, greatListener: 0, knowledgeable: 0 },
+          friends: [],
+          pendingFriendRequests: [],
+          createdAt: new Date(),
+          isOnline: true,
+          lastSeen: new Date(),
+        })
       })
     } catch (err: any) {
-      setError(err.message)
+      if (err.message === 'USERNAME_TAKEN') {
+        setError('This username was just taken. Please choose another.')
+        setStep(1)
+        setUsernameAvailable(false)
+      } else {
+        setError(err.message)
+      }
       setSaving(false)
     }
   }
@@ -79,14 +129,12 @@ export default function Onboarding() {
     <div className="min-h-screen bg-gray-950 text-white flex flex-col items-center justify-center px-6">
       <div className="w-full max-w-md">
 
-        {/* Progress */}
         <div className="flex gap-2 mb-8">
           {[1, 2, 3].map(s => (
             <div key={s} className={`h-1 flex-1 rounded-full transition-all ${s <= step ? 'bg-indigo-500' : 'bg-gray-800'}`} />
           ))}
         </div>
 
-        {/* Step 1 — Username + Country */}
         {step === 1 && (
           <div>
             <h2 className="text-2xl font-bold mb-1">Let's set up your profile</h2>
@@ -95,13 +143,38 @@ export default function Onboarding() {
             <div className="flex flex-col gap-4">
               <div>
                 <label className="text-sm text-gray-400 mb-1 block">Username</label>
-                <input
-                  type="text"
-                  value={username}
-                  onChange={e => setUsername(e.target.value)}
-                  placeholder="e.g. cricket_fanatic"
-                  className="w-full bg-gray-900 border border-gray-800 rounded-xl px-4 py-3 text-white placeholder-gray-600 focus:outline-none focus:border-indigo-500 transition"
-                />
+                <div className="relative">
+                  <input
+                    type="text"
+                    value={username}
+                    onChange={e => setUsername(e.target.value)}
+                    placeholder="e.g. cricket_fanatic"
+                    className={`w-full bg-gray-900 border rounded-xl px-4 py-3 pr-10 text-white placeholder-gray-600 focus:outline-none transition ${
+                      usernameAvailable === false
+                        ? 'border-red-500/50 focus:border-red-500'
+                        : usernameAvailable === true
+                        ? 'border-green-500/50 focus:border-green-500'
+                        : 'border-gray-800 focus:border-indigo-500'
+                    }`}
+                  />
+                  <div className="absolute right-3 top-1/2 -translate-y-1/2">
+                    {checkingUsername && (
+                      <div className="w-4 h-4 border-2 border-gray-600 border-t-indigo-500 rounded-full animate-spin" />
+                    )}
+                    {!checkingUsername && usernameAvailable === true && (
+                      <span className="text-green-400 text-sm">✓</span>
+                    )}
+                    {!checkingUsername && usernameAvailable === false && (
+                      <span className="text-red-400 text-sm">✗</span>
+                    )}
+                  </div>
+                </div>
+                {usernameAvailable === false && (
+                  <p className="text-red-400 text-xs mt-1.5">This username is already taken</p>
+                )}
+                {usernameAvailable === true && (
+                  <p className="text-green-400 text-xs mt-1.5">Username is available</p>
+                )}
               </div>
 
               <div>
@@ -130,7 +203,6 @@ export default function Onboarding() {
           </div>
         )}
 
-        {/* Step 2 — Pick Interests */}
         {step === 2 && (
           <div>
             <h2 className="text-2xl font-bold mb-1">What are you into?</h2>
@@ -172,7 +244,6 @@ export default function Onboarding() {
           </div>
         )}
 
-        {/* Step 3 — Favorite Interest */}
         {step === 3 && (
           <div>
             <h2 className="text-2xl font-bold mb-1">What's your favorite?</h2>
