@@ -13,6 +13,11 @@ type Message = {
   senderId: string
   text: string
   timestamp: any
+  replyTo?: {
+    id: string
+    text: string
+    senderId: string
+  }
 }
 
 export default function ConversationRoom({
@@ -35,7 +40,10 @@ export default function ConversationRoom({
   const [showEndConfirm, setShowEndConfirm] = useState(false)
   const [showReport, setShowReport] = useState(false)
   const [duration, setDuration] = useState(0)
+  const [replyingTo, setReplyingTo] = useState<Message | null>(null)
+  const [showScrollBtn, setShowScrollBtn] = useState(false)
   const bottomRef = useRef<HTMLDivElement>(null)
+  const messagesRef = useRef<HTMLDivElement>(null)
   const inputRef = useRef<HTMLInputElement>(null)
   const audioCtxRef = useRef<AudioContext | null>(null)
   const partnerUsernameRef = useRef('')
@@ -74,6 +82,22 @@ export default function ConversationRoom({
       oscillator.start(ctx.currentTime)
       oscillator.stop(ctx.currentTime + 0.1)
     } catch (e) {}
+  }
+
+  // Detect scroll position to show/hide scroll button
+  useEffect(() => {
+    const container = messagesRef.current
+    if (!container) return
+    const handleScroll = () => {
+      const distanceFromBottom = container.scrollHeight - container.scrollTop - container.clientHeight
+      setShowScrollBtn(distanceFromBottom > 150)
+    }
+    container.addEventListener('scroll', handleScroll)
+    return () => container.removeEventListener('scroll', handleScroll)
+  }, [])
+
+  const scrollToBottom = () => {
+    bottomRef.current?.scrollIntoView({ behavior: 'smooth' })
   }
 
   useEffect(() => {
@@ -127,11 +151,24 @@ export default function ConversationRoom({
       const newMessages = snap.docs.map(d => ({ id: d.id, ...d.data() } as Message))
       if (!isFirst) {
         const lastMsg = newMessages[newMessages.length - 1]
-        if (lastMsg && lastMsg.senderId !== userIdRef.current) playPopSound()
+        if (lastMsg && lastMsg.senderId !== userIdRef.current) {
+          playPopSound()
+          // Auto scroll only if near bottom
+          const container = messagesRef.current
+          if (container) {
+            const distanceFromBottom = container.scrollHeight - container.scrollTop - container.clientHeight
+            if (distanceFromBottom < 200) {
+              setTimeout(() => bottomRef.current?.scrollIntoView({ behavior: 'smooth' }), 100)
+            }
+          }
+        } else {
+          setTimeout(() => bottomRef.current?.scrollIntoView({ behavior: 'smooth' }), 100)
+        }
+      } else {
+        setTimeout(() => bottomRef.current?.scrollIntoView({ behavior: 'smooth' }), 100)
       }
       isFirst = false
       setMessages(newMessages)
-      setTimeout(() => bottomRef.current?.scrollIntoView({ behavior: 'smooth' }), 100)
     })
     return unsub
   }, [conversationId])
@@ -141,13 +178,23 @@ export default function ConversationRoom({
     setSending(true)
     setShowEmoji(false)
     try {
-      await addDoc(collection(db, 'conversations', conversationId, 'messages'), {
+      const messageData: any = {
         senderId: user.uid,
         text: text.trim(),
         timestamp: serverTimestamp(),
-      })
+      }
+      if (replyingTo) {
+        messageData.replyTo = {
+          id: replyingTo.id,
+          text: replyingTo.text,
+          senderId: replyingTo.senderId,
+        }
+      }
+      await addDoc(collection(db, 'conversations', conversationId, 'messages'), messageData)
       setText('')
+      setReplyingTo(null)
       inputRef.current?.focus()
+      setTimeout(() => bottomRef.current?.scrollIntoView({ behavior: 'smooth' }), 100)
     } finally {
       setSending(false)
     }
@@ -180,10 +227,7 @@ export default function ConversationRoom({
         <div className="flex items-center gap-3">
           {partnerAvatar && (
             <div className="relative">
-              <img
-                src={partnerAvatar}
-                className="w-9 h-9 rounded-full bg-gray-800 border-2 border-indigo-500/50"
-              />
+              <img src={partnerAvatar} className="w-9 h-9 rounded-full bg-gray-800 border-2 border-indigo-500/50" />
               <span className="absolute -bottom-0.5 -right-0.5 w-3 h-3 bg-green-500 rounded-full border-2 border-gray-950" />
             </div>
           )}
@@ -228,6 +272,7 @@ export default function ConversationRoom({
 
       {/* Messages */}
       <div
+        ref={messagesRef}
         className="relative z-10 flex-1 overflow-y-auto px-4 py-6 flex flex-col gap-2"
         onClick={() => setShowEmoji(false)}
       >
@@ -250,6 +295,8 @@ export default function ConversationRoom({
             const isMe = msg.senderId === user?.uid
             const prevMsg = messages[i - 1]
             const showAvatar = !isMe && (!prevMsg || prevMsg.senderId !== msg.senderId)
+            const replyUser = msg.replyTo?.senderId === user?.uid ? 'You' : partnerUsername
+
             return (
               <motion.div
                 key={msg.id}
@@ -268,25 +315,63 @@ export default function ConversationRoom({
                   </div>
                 )}
 
-                {isMe && hoveredMsg === msg.id && (
-                  <motion.button
-                    initial={{ opacity: 0 }}
-                    animate={{ opacity: 1 }}
-                    onClick={() => deleteMessage(msg.id)}
-                    className="text-gray-700 hover:text-red-400 text-xs transition mb-1"
-                  >
-                    🗑️
-                  </motion.button>
-                )}
+                <div className="flex flex-col gap-1 max-w-xs lg:max-w-md">
+                  {/* Reply preview */}
+                  {msg.replyTo && (
+                    <div className={`flex items-start gap-2 px-3 py-1.5 rounded-xl text-xs border-l-2 ${
+                      isMe
+                        ? 'bg-indigo-800/50 border-indigo-300/50 text-indigo-200 self-end'
+                        : 'bg-gray-700/50 border-gray-400/50 text-gray-400 self-start'
+                    }`}>
+                      <div>
+                        <span className="font-medium">{replyUser}</span>
+                        <p className="truncate max-w-48 opacity-80">{msg.replyTo.text}</p>
+                      </div>
+                    </div>
+                  )}
 
-                <div
-                  className={`max-w-xs lg:max-w-md px-4 py-2.5 rounded-2xl text-sm leading-relaxed ${
-                    isMe
-                      ? 'bg-indigo-600 text-white rounded-br-sm shadow-lg shadow-indigo-500/20'
-                      : 'bg-gray-800/80 text-gray-100 rounded-bl-sm border border-white/5'
-                  }`}
-                >
-                  {msg.text}
+                  <div className="flex items-end gap-2">
+                    {/* Action buttons on hover */}
+                    {hoveredMsg === msg.id && (
+                      <motion.div
+                        initial={{ opacity: 0 }}
+                        animate={{ opacity: 1 }}
+                        className={`flex items-center gap-1 mb-1 ${isMe ? 'order-first' : 'order-last'}`}
+                      >
+                        {/* Reply button — always show */}
+                        <button
+                          onClick={() => {
+                            setReplyingTo(msg)
+                            inputRef.current?.focus()
+                          }}
+                          className="text-gray-600 hover:text-indigo-400 text-xs transition p-1 rounded"
+                          title="Reply"
+                        >
+                          ↩️
+                        </button>
+                        {/* Delete — only own messages */}
+                        {isMe && (
+                          <button
+                            onClick={() => deleteMessage(msg.id)}
+                            className="text-gray-700 hover:text-red-400 text-xs transition p-1 rounded"
+                            title="Delete"
+                          >
+                            🗑️
+                          </button>
+                        )}
+                      </motion.div>
+                    )}
+
+                    <div
+                      className={`px-4 py-2.5 rounded-2xl text-sm leading-relaxed ${
+                        isMe
+                          ? 'bg-indigo-600 text-white rounded-br-sm shadow-lg shadow-indigo-500/20'
+                          : 'bg-gray-800/80 text-gray-100 rounded-bl-sm border border-white/5'
+                      }`}
+                    >
+                      {msg.text}
+                    </div>
+                  </div>
                 </div>
               </motion.div>
             )
@@ -294,6 +379,21 @@ export default function ConversationRoom({
         </AnimatePresence>
         <div ref={bottomRef} />
       </div>
+
+      {/* Scroll to bottom button */}
+      <AnimatePresence>
+        {showScrollBtn && (
+          <motion.button
+            initial={{ opacity: 0, scale: 0.8 }}
+            animate={{ opacity: 1, scale: 1 }}
+            exit={{ opacity: 0, scale: 0.8 }}
+            onClick={scrollToBottom}
+            className="fixed bottom-24 right-4 z-20 w-10 h-10 bg-indigo-600 hover:bg-indigo-500 text-white rounded-full shadow-lg flex items-center justify-center transition"
+          >
+            ↓
+          </motion.button>
+        )}
+      </AnimatePresence>
 
       {/* Suggestions */}
       <AnimatePresence>
@@ -305,7 +405,7 @@ export default function ConversationRoom({
             className="relative z-10 px-4 pb-2"
           >
             <p className="text-gray-600 text-xs mb-2 font-medium">💬 Conversation starters</p>
-            <div className="flex gap-2 overflow-x-auto pb-1 scrollbar-hide">
+            <div className="flex gap-2 overflow-x-auto pb-1">
               {suggestions.map((s, i) => (
                 <motion.button
                   key={i}
@@ -319,6 +419,31 @@ export default function ConversationRoom({
                 </motion.button>
               ))}
             </div>
+          </motion.div>
+        )}
+      </AnimatePresence>
+
+      {/* Reply preview bar */}
+      <AnimatePresence>
+        {replyingTo && (
+          <motion.div
+            initial={{ opacity: 0, y: 10 }}
+            animate={{ opacity: 1, y: 0 }}
+            exit={{ opacity: 0, y: 10 }}
+            className="relative z-10 flex items-center gap-3 px-4 py-2 bg-gray-900/80 border-t border-white/5"
+          >
+            <div className="flex-1 border-l-2 border-indigo-500 pl-3">
+              <p className="text-xs text-indigo-400 font-medium">
+                Replying to {replyingTo.senderId === user?.uid ? 'yourself' : partnerUsername}
+              </p>
+              <p className="text-xs text-gray-400 truncate">{replyingTo.text}</p>
+            </div>
+            <button
+              onClick={() => setReplyingTo(null)}
+              className="text-gray-600 hover:text-white text-sm transition"
+            >
+              ✕
+            </button>
           </motion.div>
         )}
       </AnimatePresence>
@@ -352,7 +477,7 @@ export default function ConversationRoom({
           value={text}
           onChange={e => setText(e.target.value)}
           onKeyDown={e => e.key === 'Enter' && sendMessage()}
-          placeholder={`Message ${partnerUsername}...`}
+          placeholder={replyingTo ? `Reply to ${replyingTo.senderId === user?.uid ? 'yourself' : partnerUsername}...` : `Message ${partnerUsername}...`}
           className="flex-1 bg-gray-900/80 border border-white/5 rounded-xl px-4 py-2.5 text-white placeholder-gray-600 focus:outline-none focus:border-indigo-500/50 focus:bg-gray-900 transition text-sm"
         />
         <motion.button
