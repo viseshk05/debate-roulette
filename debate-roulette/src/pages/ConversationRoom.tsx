@@ -215,7 +215,7 @@ export default function ConversationRoom({
   const suggestions = topicId ? SUGGESTIONS[topicId] : []
 
   return (
-    <div className="min-h-screen bg-gray-950 text-white flex flex-col">
+    <div className="h-screen bg-gray-950 text-white flex flex-col overflow-hidden">
 
       {/* Background */}
       <div className="fixed inset-0 pointer-events-none">
@@ -299,14 +299,24 @@ export default function ConversationRoom({
 
             return (
               <motion.div
-                key={msg.id}
-                initial={{ opacity: 0, y: 8, scale: 0.95 }}
-                animate={{ opacity: 1, y: 0, scale: 1 }}
-                transition={{ duration: 0.15 }}
-                className={`flex items-end gap-2 ${isMe ? 'justify-end' : 'justify-start'}`}
-                onMouseEnter={() => setHoveredMsg(msg.id)}
-                onMouseLeave={() => setHoveredMsg(null)}
-              >
+  key={msg.id}
+  initial={{ opacity: 0, y: 8, scale: 0.95 }}
+  animate={{ opacity: 1, y: 0, scale: 1 }}
+  transition={{ duration: 0.15 }}
+  className={`flex items-end gap-2 ${isMe ? 'justify-end' : 'justify-start'}`}
+  onMouseEnter={() => setHoveredMsg(msg.id)}
+  onMouseLeave={() => setHoveredMsg(null)}
+  drag="x"
+  dragConstraints={{ left: 0, right: 60 }}
+  dragElastic={0.3}
+  onDragEnd={(_, info) => {
+    if (info.offset.x > 40) {
+      setReplyingTo(msg)
+      inputRef.current?.focus()
+    }
+  }}
+  style={{ touchAction: 'pan-y' }}
+>
                 {!isMe && (
                   <div className="w-6 flex-shrink-0">
                     {showAvatar && partnerAvatar && (
