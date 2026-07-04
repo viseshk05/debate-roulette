@@ -1,5 +1,5 @@
 import { useState, useEffect } from 'react'
-import { doc,  getDoc, runTransaction } from 'firebase/firestore'
+import { doc, getDoc, runTransaction } from 'firebase/firestore'
 import { db } from '../lib/firebase'
 import { useAuth } from '../hooks/useAuth'
 
@@ -17,6 +17,16 @@ const COUNTRIES = [
   'Germany', 'France', 'Brazil', 'Japan', 'South Korea', 'Other'
 ]
 
+// Wraps any promise with a timeout so the UI never hangs forever
+function withTimeout<T>(promise: Promise<T>, ms: number, timeoutMessage: string): Promise<T> {
+  return Promise.race([
+    promise,
+    new Promise<T>((_, reject) =>
+      setTimeout(() => reject(new Error(timeoutMessage)), ms)
+    ),
+  ])
+}
+
 export default function Onboarding() {
   const { user } = useAuth()
   const [step, setStep] = useState(1)
@@ -29,25 +39,34 @@ export default function Onboarding() {
   const [checkingUsername, setCheckingUsername] = useState(false)
   const [usernameAvailable, setUsernameAvailable] = useState<boolean | null>(null)
 
-  // Debounced username availability check
+  // Debounced username availability check — with timeout so it never spins forever
   useEffect(() => {
     const trimmed = username.trim().toLowerCase()
     if (trimmed.length < 3) {
       setUsernameAvailable(null)
+      setCheckingUsername(false)
       return
     }
     setCheckingUsername(true)
+    let cancelled = false
     const timeout = setTimeout(async () => {
       try {
-        const snap = await getDoc(doc(db, 'usernames', trimmed))
-        setUsernameAvailable(!snap.exists())
+        const snap = await withTimeout(
+          getDoc(doc(db, 'usernames', trimmed)),
+          8000,
+          'TIMEOUT'
+        )
+        if (!cancelled) setUsernameAvailable(!snap.exists())
       } catch (e) {
-        setUsernameAvailable(null)
+        if (!cancelled) setUsernameAvailable(null)
       } finally {
-        setCheckingUsername(false)
+        if (!cancelled) setCheckingUsername(false)
       }
     }, 500)
-    return () => clearTimeout(timeout)
+    return () => {
+      cancelled = true
+      clearTimeout(timeout)
+    }
   }, [username])
 
   const toggleInterest = (interest: string) => {
@@ -66,7 +85,7 @@ export default function Onboarding() {
     if (username.trim().length < 3) { setError('Username must be at least 3 characters'); return }
     if (!/^[a-zA-Z0-9_]+$/.test(username.trim())) { setError('Username can only contain letters, numbers, and underscores'); return }
     if (usernameAvailable === false) { setError('This username is already taken'); return }
-    if (usernameAvailable === null) { setError('Please wait while we check username availability'); return }
+    if (usernameAvailable === null) { setError('Please wait while we check username availability, or try again'); return }
     if (!country) { setError('Please select your country'); return }
     setError('')
     setStep(2)
@@ -80,46 +99,55 @@ export default function Onboarding() {
 
   const handleFinish = async () => {
     if (!favoriteInterest) { setError('Please pick your favorite interest'); return }
+    if (!user) { setError('Something went wrong with your session. Please refresh and try again.'); return }
     setSaving(true)
+    setError('')
     const trimmedUsername = username.trim()
     const usernameKey = trimmedUsername.toLowerCase()
 
     try {
-      // Atomic transaction — claims username + creates profile together
-      await runTransaction(db, async (transaction) => {
-        const usernameRef = doc(db, 'usernames', usernameKey)
-        const usernameSnap = await transaction.get(usernameRef)
+      await withTimeout(
+        runTransaction(db, async (transaction) => {
+          const usernameRef = doc(db, 'usernames', usernameKey)
+          const usernameSnap = await transaction.get(usernameRef)
 
-        if (usernameSnap.exists()) {
-          throw new Error('USERNAME_TAKEN')
-        }
+          if (usernameSnap.exists()) {
+            throw new Error('USERNAME_TAKEN')
+          }
 
-        transaction.set(usernameRef, {
-          uid: user!.uid,
-          createdAt: new Date(),
-        })
+          transaction.set(usernameRef, {
+            uid: user.uid,
+            createdAt: new Date(),
+          })
 
-        transaction.set(doc(db, 'users', user!.uid), {
-          id: user!.uid,
-          username: trimmedUsername,
-          country,
-          interests: selectedInterests,
-          favoriteInterest,
-          badges: { respectful: 0, insightful: 0, funny: 0, greatListener: 0, knowledgeable: 0 },
-          friends: [],
-          pendingFriendRequests: [],
-          createdAt: new Date(),
-          isOnline: true,
-          lastSeen: new Date(),
-        })
-      })
+          transaction.set(doc(db, 'users', user.uid), {
+            id: user.uid,
+            username: trimmedUsername,
+            country,
+            interests: selectedInterests,
+            favoriteInterest,
+            badges: { respectful: 0, insightful: 0, funny: 0, greatListener: 0, knowledgeable: 0 },
+            friends: [],
+            pendingFriendRequests: [],
+            createdAt: new Date(),
+            isOnline: true,
+            lastSeen: new Date(),
+          })
+        }),
+        10000,
+        'TIMEOUT'
+      )
+      // Success — App.tsx's onSnapshot/getDoc check will detect the new profile
+      // and move past onboarding automatically. No need to do anything else here.
     } catch (err: any) {
       if (err.message === 'USERNAME_TAKEN') {
         setError('This username was just taken. Please choose another.')
         setStep(1)
         setUsernameAvailable(false)
+      } else if (err.message === 'TIMEOUT') {
+        setError('This is taking longer than expected. Check your connection and try again.')
       } else {
-        setError(err.message)
+        setError('Something went wrong. Please try again. (' + (err.message || 'unknown error') + ')')
       }
       setSaving(false)
     }
@@ -274,6 +302,11 @@ export default function Onboarding() {
             >
               {saving ? 'Setting up your profile...' : "Let's go →"}
             </button>
+            {saving && (
+              <p className="text-gray-600 text-xs text-center mt-3">
+                Taking a while? Check your internet connection.
+              </p>
+            )}
           </div>
         )}
 
