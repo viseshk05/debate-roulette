@@ -55,8 +55,8 @@ export default function TopicList({ onBack, onTopicSelect }: {
         <div className="absolute top-0 left-1/2 -translate-x-1/2 w-[500px] h-[200px] bg-indigo-600 opacity-5 blur-3xl rounded-full" />
       </div>
 
-      {/* Header */}
-     <div className="no-scrollbar relative z-10 flex gap-2 px-6 py-4 overflow-x-auto">
+      {/* Header — normal, no scroll */}
+      <div className="relative z-10 flex items-center gap-3 px-6 py-4 border-b border-white/5">
         <button
           onClick={onBack}
           className="w-8 h-8 flex items-center justify-center rounded-lg bg-gray-900 hover:bg-gray-800 text-gray-400 hover:text-white transition"
@@ -80,8 +80,8 @@ export default function TopicList({ onBack, onTopicSelect }: {
         />
       </div>
 
-      {/* Category Filter */}
-      <div className="relative z-10 flex gap-2 px-6 py-4 overflow-x-auto">
+      {/* Category Filter — this is the only scrollable row */}
+      <div className="no-scrollbar relative z-10 flex gap-2 px-6 py-4 overflow-x-auto">
         {CATEGORIES.map(cat => (
           <button
             key={cat}
