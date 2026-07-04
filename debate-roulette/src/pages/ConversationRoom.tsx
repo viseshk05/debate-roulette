@@ -5,7 +5,7 @@ import { useAuth } from '../hooks/useAuth'
 import EmojiPicker from 'emoji-picker-react'
 import { Theme } from 'emoji-picker-react'
 import { motion, AnimatePresence } from 'framer-motion'
-import { TOPICS, SUGGESTIONS } from '../lib/topics'
+import { TOPICS, CATEGORY_SUGGESTIONS } from '../lib/topics'
 import ReportModal from '../components/ReportModal'
 
 type Message = {
@@ -212,7 +212,7 @@ export default function ConversationRoom({
   }
 
   const topic = topicId ? TOPICS[topicId] : null
-  const suggestions = topicId ? SUGGESTIONS[topicId] : []
+  const suggestions = topic ? CATEGORY_SUGGESTIONS[topic.category] || [] : []
 
   return (
     <div className="h-screen bg-gray-950 text-white flex flex-col overflow-hidden">

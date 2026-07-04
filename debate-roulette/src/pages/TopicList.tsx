@@ -1,53 +1,29 @@
 import { useState } from 'react'
 import { motion, AnimatePresence } from 'framer-motion'
-
-const TOPICS = [
-  { id: 't1', title: 'Virat Kohli is a better Test captain than Rohit Sharma', category: 'Sports' },
-  { id: 't2', title: 'Messi is the greatest footballer of all time', category: 'Sports' },
-  { id: 't3', title: 'Cricket is more skillful than Football', category: 'Sports' },
-  { id: 't4', title: 'LeBron James is better than Michael Jordan', category: 'Sports' },
-  { id: 't5', title: 'T20 is ruining Test cricket', category: 'Sports' },
-  { id: 't6', title: 'Marvel has better storytelling than DC', category: 'Entertainment' },
-  { id: 't7', title: 'Interstellar is a better film than Inception', category: 'Entertainment' },
-  { id: 't8', title: 'Nolan is a better director than Scorsese', category: 'Entertainment' },
-  { id: 't9', title: 'Anime has better storytelling than Western shows', category: 'Entertainment' },
-  { id: 't10', title: 'TV shows are a better format than movies for storytelling', category: 'Entertainment' },
-  { id: 't11', title: 'Android gives more value than iPhone', category: 'Technology' },
-  { id: 't12', title: 'AI will do more good than harm for humanity', category: 'Technology' },
-  { id: 't13', title: 'Remote work is more productive than office work', category: 'Technology' },
-  { id: 't14', title: 'Social media does more harm than good to society', category: 'Technology' },
-  { id: 't15', title: 'Electric cars are ready to replace petrol cars today', category: 'Technology' },
-  { id: 't16', title: 'PC gaming is superior to console gaming', category: 'Gaming' },
-  { id: 't17', title: 'PUBG is a better game than Free Fire', category: 'Gaming' },
-  { id: 't18', title: 'Single player games are better than multiplayer', category: 'Gaming' },
-  { id: 't19', title: 'Minecraft has more creative value than Roblox', category: 'Gaming' },
-  { id: 't20', title: 'Calisthenics builds better functional fitness than gym', category: 'Lifestyle' },
-  { id: 't21', title: 'Being an early bird is better than being a night owl', category: 'Lifestyle' },
-  { id: 't22', title: 'A vegetarian diet is healthier than a non-vegetarian one', category: 'Lifestyle' },
-  { id: 't23', title: 'Books are a better learning tool than podcasts', category: 'Lifestyle' },
-  { id: 't24', title: 'City life is better than village life in the modern era', category: 'Lifestyle' },
-  { id: 't25', title: 'Kendrick Lamar is a better artist than Drake', category: 'Music' },
-  { id: 't26', title: 'Hip Hop has more cultural depth than Rock', category: 'Music' },
-  { id: 't27', title: 'Spotify is a better music platform than YouTube Music', category: 'Music' },
-  { id: 't28', title: 'Live music is a better experience than studio albums', category: 'Music' },
-  { id: 't29', title: 'A college degree is still worth it in 2025', category: 'Career' },
-  { id: 't30', title: 'Job security is more important than startup risk at 25', category: 'Career' },
-  { id: 't31', title: 'You should follow your passion even if it pays less', category: 'Career' },
-  { id: 't32', title: 'Being an entrepreneur is better than being an employee', category: 'Career' },
-]
+import { TOPICS } from '../lib/topics'
 
 const CATEGORY_ICONS: Record<string, string> = {
   All: '🌐',
   Sports: '⚽',
   Entertainment: '🎬',
+  Music: '🎵',
   Technology: '💻',
   Gaming: '🎮',
+  Literature: '📖',
+  Philosophy: '🧠',
+  History: '🏛️',
+  Politics: '🗳️',
+  Fandom: '✨',
+  Astrology: '🔮',
+  Science: '🔬',
+  Fiction: '📚',
   Lifestyle: '🌿',
-  Music: '🎵',
   Career: '💼',
 }
 
-const CATEGORIES = ['All', 'Sports', 'Entertainment', 'Technology', 'Gaming', 'Lifestyle', 'Music', 'Career']
+const CATEGORIES = ['All', ...Array.from(new Set(Object.values(TOPICS).map(t => t.category)))]
+
+const TOPICS_LIST = Object.entries(TOPICS).map(([id, t]) => ({ id, ...t }))
 
 export default function TopicList({ onBack, onTopicSelect }: {
   onBack: () => void
@@ -55,10 +31,13 @@ export default function TopicList({ onBack, onTopicSelect }: {
 }) {
   const [selectedCategory, setSelectedCategory] = useState('All')
   const [selectedTopic, setSelectedTopic] = useState<string | null>(null)
+  const [searchQuery, setSearchQuery] = useState('')
 
-  const filtered = TOPICS.filter(t =>
-    selectedCategory === 'All' || t.category === selectedCategory
-  )
+  const filtered = TOPICS_LIST.filter(t => {
+    const matchesCategory = selectedCategory === 'All' || t.category === selectedCategory
+    const matchesSearch = t.title.toLowerCase().includes(searchQuery.toLowerCase())
+    return matchesCategory && matchesSearch
+  })
 
   const handleTopicClick = (id: string) => {
     setSelectedTopic(selectedTopic === id ? null : id)
@@ -77,7 +56,7 @@ export default function TopicList({ onBack, onTopicSelect }: {
       </div>
 
       {/* Header */}
-      <div className="relative z-10 flex items-center gap-3 px-6 py-4 border-b border-white/5">
+     <div className="relative z-10 flex gap-2 px-6 py-4 overflow-x-auto [&::-webkit-scrollbar]:hidden [-ms-overflow-style:none] [scrollbar-width:none]">
         <button
           onClick={onBack}
           className="w-8 h-8 flex items-center justify-center rounded-lg bg-gray-900 hover:bg-gray-800 text-gray-400 hover:text-white transition"
@@ -86,8 +65,19 @@ export default function TopicList({ onBack, onTopicSelect }: {
         </button>
         <div>
           <h1 className="font-bold text-lg">Choose a Topic</h1>
-          <p className="text-gray-500 text-xs">Pick a statement and take your stance</p>
+          <p className="text-gray-500 text-xs">{TOPICS_LIST.length} statements to debate</p>
         </div>
+      </div>
+
+      {/* Search */}
+      <div className="relative z-10 px-6 pt-4">
+        <input
+          type="text"
+          value={searchQuery}
+          onChange={e => setSearchQuery(e.target.value)}
+          placeholder="Search topics..."
+          className="w-full bg-gray-900/80 border border-white/5 rounded-xl px-4 py-2.5 text-sm text-white placeholder-gray-600 focus:outline-none focus:border-indigo-500/50 transition"
+        />
       </div>
 
       {/* Category Filter */}
@@ -102,7 +92,7 @@ export default function TopicList({ onBack, onTopicSelect }: {
                 : 'bg-gray-900 text-gray-400 hover:bg-gray-800 border border-white/5'
             }`}
           >
-            <span>{CATEGORY_ICONS[cat]}</span>
+            <span>{CATEGORY_ICONS[cat] || '📌'}</span>
             <span>{cat}</span>
           </button>
         ))}
@@ -110,6 +100,9 @@ export default function TopicList({ onBack, onTopicSelect }: {
 
       {/* Topic List */}
       <div className="relative z-10 flex-1 overflow-y-auto px-6 flex flex-col gap-3 pb-6">
+        {filtered.length === 0 && (
+          <p className="text-gray-600 text-sm text-center mt-8">No topics match your search.</p>
+        )}
         {filtered.map((t, i) => {
           const isExpanded = selectedTopic === t.id
           return (
@@ -117,7 +110,7 @@ export default function TopicList({ onBack, onTopicSelect }: {
               key={t.id}
               initial={{ opacity: 0, y: 10 }}
               animate={{ opacity: 1, y: 0 }}
-              transition={{ delay: i * 0.03 }}
+              transition={{ delay: Math.min(i * 0.02, 0.3) }}
             >
               <div
                 className={`rounded-2xl border transition-all overflow-hidden ${
@@ -135,7 +128,7 @@ export default function TopicList({ onBack, onTopicSelect }: {
                       <span className={`text-xs font-medium px-2 py-0.5 rounded-full mb-2 inline-block ${
                         isExpanded ? 'bg-indigo-500/20 text-indigo-400' : 'bg-gray-800 text-gray-500'
                       }`}>
-                        {CATEGORY_ICONS[t.category]} {t.category}
+                        {CATEGORY_ICONS[t.category] || '📌'} {t.category}
                       </span>
                       <p className="font-semibold text-sm leading-relaxed text-white">
                         {t.title}

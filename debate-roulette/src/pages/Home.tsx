@@ -10,6 +10,7 @@ import PostConversation from './PostConversation'
 import Profile from './Profile'
 import RandomQueue from './RandomQueue'
 import { motion } from 'framer-motion'
+import { TOPICS } from '../lib/topics'
 
 type Screen = 'home' | 'topics' | 'queue' | 'random' | 'conversation' | 'post' | 'profile'
 
@@ -242,8 +243,8 @@ export default function Home() {
               <div className="flex items-center justify-between mb-3">
                 <span className="text-3xl">🗣️</span>
                 <span className="text-xs font-semibold bg-white/10 px-3 py-1 rounded-full text-gray-400">
-                  32 Topics
-                </span>
+  {Object.keys(TOPICS).length} Topics
+</span>
               </div>
               <div className="font-bold text-xl mb-1">Topic Mode</div>
               <div className="text-gray-400 text-sm leading-relaxed">
