@@ -27,33 +27,33 @@ export const TOPICS: Record<string, { title: string; sideA: string; sideB: strin
   t23: { title: 'Spider-Man is the most relatable superhero', sideA: 'Agree', sideB: 'Disagree', category: 'Entertainment' },
   t24: { title: 'One Piece is the greatest manga', sideA: 'Agree', sideB: 'Disagree', category: 'Entertainment' },
   t25: { title: 'Naruto has the strongest underdog impact', sideA: 'Agree', sideB: 'Disagree', category: 'Entertainment' },
+  t26: { title: 'A great live performer is more impressive than a great studio artist', sideA: 'Agree', sideB: 'Disagree', category: 'Entertainment' },
 
   // Music
-  t26: { title: 'BTS has the strongest fandom in music', sideA: 'Agree', sideB: 'Disagree', category: 'Music' },
-  t27: { title: 'Taylor Swift is the most powerful pop artist', sideA: 'Agree', sideB: 'Disagree', category: 'Music' },
-  t28: { title: 'Michael Jackson is the greatest pop star', sideA: 'Agree', sideB: 'Disagree', category: 'Music' },
+  t27: { title: 'BTS has the strongest fandom in music', sideA: 'Agree', sideB: 'Disagree', category: 'Music' },
+  t28: { title: 'Taylor Swift is the most powerful pop artist', sideA: 'Agree', sideB: 'Disagree', category: 'Music' },
   t29: { title: 'Arijit Singh is the most loved playback singer', sideA: 'Agree', sideB: 'Disagree', category: 'Music' },
   t30: { title: 'The Beatles are the most influential band', sideA: 'Agree', sideB: 'Disagree', category: 'Music' },
   t31: { title: 'Eminem is the most impactful rapper', sideA: 'Agree', sideB: 'Disagree', category: 'Music' },
   t32: { title: 'A.R. Rahman is the most visionary composer', sideA: 'Agree', sideB: 'Disagree', category: 'Music' },
   t33: { title: 'Kendrick Lamar is a better artist than Drake', sideA: 'Agree', sideB: 'Disagree', category: 'Music' },
-  t34: { title: 'Live music is a better experience than studio albums', sideA: 'Agree', sideB: 'Disagree', category: 'Music' },
+  t34: { title: 'A song\'s lyrics matter more than its melody', sideA: 'Agree', sideB: 'Disagree', category: 'Music' },
 
   // Technology
-  t35: { title: 'Apple is the best consumer tech brand', sideA: 'Agree', sideB: 'Disagree', category: 'Technology' },
+  t35: { title: 'iPhone users get better value than they think', sideA: 'Agree', sideB: 'Disagree', category: 'Technology' },
   t36: { title: 'Android is the best mobile platform', sideA: 'Agree', sideB: 'Disagree', category: 'Technology' },
   t37: { title: 'Tesla has the strongest EV fanbase', sideA: 'Agree', sideB: 'Disagree', category: 'Technology' },
   t38: { title: 'Google has the biggest tech influence', sideA: 'Agree', sideB: 'Disagree', category: 'Technology' },
-  t39: { title: 'Open-source software has the deepest long-term impact', sideA: 'Agree', sideB: 'Disagree', category: 'Technology' },
-  t40: { title: 'NVIDIA is the most important chip company', sideA: 'Agree', sideB: 'Disagree', category: 'Technology' },
+  t39: { title: 'Free, open-source software will eventually replace paid software', sideA: 'Agree', sideB: 'Disagree', category: 'Technology' },
+  t40: { title: 'Every major tech breakthrough right now depends on one company: NVIDIA', sideA: 'Agree', sideB: 'Disagree', category: 'Technology' },
   t41: { title: 'Elon Musk has the biggest tech fanbase', sideA: 'Agree', sideB: 'Disagree', category: 'Technology' },
   t42: { title: 'AI will do more good than harm for humanity', sideA: 'Agree', sideB: 'Disagree', category: 'Technology' },
   t43: { title: 'Social media does more harm than good to society', sideA: 'Agree', sideB: 'Disagree', category: 'Technology' },
-  t44: { title: 'Remote work is more productive than office work', sideA: 'Agree', sideB: 'Disagree', category: 'Technology' },
+  t44: { title: 'A 4-day work week would make people more productive, not less', sideA: 'Agree', sideB: 'Disagree', category: 'Technology' },
 
   // Gaming
   t45: { title: 'PlayStation has the best gaming legacy', sideA: 'Agree', sideB: 'Disagree', category: 'Gaming' },
-  t46: { title: 'Nintendo makes the most timeless games', sideA: 'Agree', sideB: 'Disagree', category: 'Gaming' },
+  t46: { title: 'Retro games are better designed than most games today', sideA: 'Agree', sideB: 'Disagree', category: 'Gaming' },
   t47: { title: 'Xbox is the best ecosystem for gamers', sideA: 'Agree', sideB: 'Disagree', category: 'Gaming' },
   t48: { title: 'GTA is the most impactful game series', sideA: 'Agree', sideB: 'Disagree', category: 'Gaming' },
   t49: { title: 'The Legend of Zelda is the best adventure franchise', sideA: 'Agree', sideB: 'Disagree', category: 'Gaming' },
@@ -68,10 +68,10 @@ export const TOPICS: Record<string, { title: string; sideA: string; sideB: strin
   t56: { title: 'Kafka\'s impact on literature is unmatched', sideA: 'Agree', sideB: 'Disagree', category: 'Literature' },
   t57: { title: 'Jane Austen is the sharpest social observer in literature', sideA: 'Agree', sideB: 'Disagree', category: 'Literature' },
   t58: { title: 'J.K. Rowling built the most devoted book fanbase', sideA: 'Agree', sideB: 'Disagree', category: 'Literature' },
-  t59: { title: 'Books are a better learning tool than podcasts', sideA: 'Agree', sideB: 'Disagree', category: 'Literature' },
+  t59: { title: 'Reading fiction makes you a more empathetic person', sideA: 'Agree', sideB: 'Disagree', category: 'Literature' },
 
   // Philosophy
-  t60: { title: 'Socrates had the greatest philosophical impact', sideA: 'Agree', sideB: 'Disagree', category: 'Philosophy' },
+  t60: { title: 'Overthinking causes more problems than it solves', sideA: 'Agree', sideB: 'Disagree', category: 'Philosophy' },
   t61: { title: 'Nietzsche is the most provocative philosopher', sideA: 'Agree', sideB: 'Disagree', category: 'Philosophy' },
   t62: { title: 'Aristotle is the most useful philosopher', sideA: 'Agree', sideB: 'Disagree', category: 'Philosophy' },
   t63: { title: 'Plato is the most foundational philosopher', sideA: 'Agree', sideB: 'Disagree', category: 'Philosophy' },
@@ -81,56 +81,56 @@ export const TOPICS: Record<string, { title: string; sideA: string; sideB: strin
   // History
   t66: { title: 'Gandhi had the biggest moral impact in history', sideA: 'Agree', sideB: 'Disagree', category: 'History' },
   t67: { title: 'Napoleon is the most fascinating historical figure', sideA: 'Agree', sideB: 'Disagree', category: 'History' },
-  t68: { title: 'Alexander the Great had the widest military impact', sideA: 'Agree', sideB: 'Disagree', category: 'History' },
+  t68: { title: 'Alexander the Great is the most overrated conqueror in history', sideA: 'Agree', sideB: 'Disagree', category: 'History' },
   t69: { title: 'Churchill is history\'s most memorable wartime leader', sideA: 'Agree', sideB: 'Disagree', category: 'History' },
   t70: { title: 'Julius Caesar is the most iconic Roman figure', sideA: 'Agree', sideB: 'Disagree', category: 'History' },
-  t71: { title: 'The Industrial Revolution had the greatest historical impact', sideA: 'Agree', sideB: 'Disagree', category: 'History' },
+  t71: { title: 'The internet has changed society more than any invention before it', sideA: 'Agree', sideB: 'Disagree', category: 'History' },
 
   // Politics
   t72: { title: 'Strong leaders matter more than party labels', sideA: 'Agree', sideB: 'Disagree', category: 'Politics' },
   t73: { title: 'Democracy works best when voters judge results, not speeches', sideA: 'Agree', sideB: 'Disagree', category: 'Politics' },
-  t74: { title: 'The best political campaign is the one with the strongest emotional connection', sideA: 'Agree', sideB: 'Disagree', category: 'Politics' },
-  t75: { title: 'Social media has more influence on politics than traditional debates', sideA: 'Agree', sideB: 'Disagree', category: 'Politics' },
+  t74: { title: 'How a candidate makes you feel matters more than their actual policies', sideA: 'Agree', sideB: 'Disagree', category: 'Politics' },
+  t75: { title: 'Politicians should be judged more on their private character than their public policies', sideA: 'Agree', sideB: 'Disagree', category: 'Politics' },
   t76: { title: 'Identity politics matters more than critics admit', sideA: 'Agree', sideB: 'Disagree', category: 'Politics' },
   t77: { title: 'Economic policy creates more real impact than ideological slogans', sideA: 'Agree', sideB: 'Disagree', category: 'Politics' },
 
   // Fandom
   t78: { title: 'Fanfiction is better than many official sequels', sideA: 'Agree', sideB: 'Disagree', category: 'Fandom' },
-  t79: { title: 'Canon-compliant fanfiction has the strongest appeal', sideA: 'Agree', sideB: 'Disagree', category: 'Fandom' },
-  t80: { title: 'Alternate-universe fanfiction is the most creative form', sideA: 'Agree', sideB: 'Disagree', category: 'Fandom' },
+  t79: { title: 'Fanfiction should stay true to the original characters', sideA: 'Agree', sideB: 'Disagree', category: 'Fandom' },
+  t80: { title: 'Rewriting a story in a completely different setting is more fun than staying loyal to canon', sideA: 'Agree', sideB: 'Disagree', category: 'Fandom' },
   t81: { title: 'Harry Potter has one of the biggest fanbases ever', sideA: 'Agree', sideB: 'Disagree', category: 'Fandom' },
   t82: { title: 'Book fandoms create more engagement than publishing campaigns', sideA: 'Agree', sideB: 'Disagree', category: 'Fandom' },
   t83: { title: 'Reader communities have more power now than traditional critics', sideA: 'Agree', sideB: 'Disagree', category: 'Fandom' },
 
   // Astrology
-  t84: { title: 'Astrology has more cultural influence than skeptics admit', sideA: 'Agree', sideB: 'Disagree', category: 'Astrology' },
-  t85: { title: 'Birth charts are more compelling than sun signs', sideA: 'Agree', sideB: 'Disagree', category: 'Astrology' },
-  t86: { title: 'Pop astrology is the most popular form of astrology', sideA: 'Agree', sideB: 'Disagree', category: 'Astrology' },
+  t84: { title: 'People who don\'t believe in astrology are still influenced by it', sideA: 'Agree', sideB: 'Disagree', category: 'Astrology' },
+  t85: { title: 'Your zodiac sign says more about you than people admit', sideA: 'Agree', sideB: 'Disagree', category: 'Astrology' },
+  t86: { title: 'Most people who follow astrology don\'t actually believe in it — they just enjoy it', sideA: 'Agree', sideB: 'Disagree', category: 'Astrology' },
   t87: { title: 'Celebrity astrologers have the biggest reach', sideA: 'Agree', sideB: 'Disagree', category: 'Astrology' },
   t88: { title: 'Astrology gives people meaning, not just predictions', sideA: 'Agree', sideB: 'Disagree', category: 'Astrology' },
   t89: { title: 'Zodiac-based fan culture is stronger than people think', sideA: 'Agree', sideB: 'Disagree', category: 'Astrology' },
 
   // Science
-  t90: { title: 'Einstein had the greatest scientific impact', sideA: 'Agree', sideB: 'Disagree', category: 'Science' },
+  t90: { title: 'Curiosity matters more than intelligence for a scientist\'s success', sideA: 'Agree', sideB: 'Disagree', category: 'Science' },
   t91: { title: 'Newton is the most foundational scientist', sideA: 'Agree', sideB: 'Disagree', category: 'Science' },
-  t92: { title: 'Marie Curie had the most inspiring scientific legacy', sideA: 'Agree', sideB: 'Disagree', category: 'Science' },
-  t93: { title: 'Space science captures the public imagination more than any other field', sideA: 'Agree', sideB: 'Disagree', category: 'Science' },
-  t94: { title: 'Medical science has the biggest everyday impact', sideA: 'Agree', sideB: 'Disagree', category: 'Science' },
-  t95: { title: 'Scientific breakthroughs matter most when they change life outside the lab', sideA: 'Agree', sideB: 'Disagree', category: 'Science' },
+  t92: { title: 'Science today moves too slowly because of bureaucracy, not a lack of ideas', sideA: 'Agree', sideB: 'Disagree', category: 'Science' },
+  t93: { title: 'Space exploration deserves more funding than it currently gets', sideA: 'Agree', sideB: 'Disagree', category: 'Science' },
+  t94: { title: 'Mental health deserves the same medical priority as physical health', sideA: 'Agree', sideB: 'Disagree', category: 'Science' },
+  t95: { title: 'A scientific discovery only really matters once it changes everyday life', sideA: 'Agree', sideB: 'Disagree', category: 'Science' },
 
   // Fiction
   t96: { title: 'Fantasy is the best fiction genre', sideA: 'Agree', sideB: 'Disagree', category: 'Fiction' },
   t97: { title: 'Dystopian fiction has the strongest impact', sideA: 'Agree', sideB: 'Disagree', category: 'Fiction' },
   t98: { title: 'Character-driven fiction is better than plot-driven fiction', sideA: 'Agree', sideB: 'Disagree', category: 'Fiction' },
-  t99: { title: 'Long-form series fiction builds stronger fan loyalty than standalone novels', sideA: 'Agree', sideB: 'Disagree', category: 'Fiction' },
+  t99: { title: 'A long-running series builds a stronger connection than a single standalone story', sideA: 'Agree', sideB: 'Disagree', category: 'Fiction' },
   t100: { title: 'Realistic fiction is more powerful than fantasy', sideA: 'Agree', sideB: 'Disagree', category: 'Fiction' },
   t101: { title: 'Epic fiction has the greatest emotional payoff', sideA: 'Agree', sideB: 'Disagree', category: 'Fiction' },
 
   // Lifestyle
-  t102: { title: 'Calisthenics builds better functional fitness than gym', sideA: 'Agree', sideB: 'Disagree', category: 'Lifestyle' },
+  t102: { title: 'Discipline matters more than motivation when building a habit', sideA: 'Agree', sideB: 'Disagree', category: 'Lifestyle' },
   t103: { title: 'Being an early bird is better than being a night owl', sideA: 'Agree', sideB: 'Disagree', category: 'Lifestyle' },
   t104: { title: 'A vegetarian diet is healthier than a non-vegetarian one', sideA: 'Agree', sideB: 'Disagree', category: 'Lifestyle' },
-  t105: { title: 'City life is better than village life in the modern era', sideA: 'Agree', sideB: 'Disagree', category: 'Lifestyle' },
+  t105: { title: 'Money can\'t buy happiness', sideA: 'Agree', sideB: 'Disagree', category: 'Lifestyle' },
 
   // Career
   t106: { title: 'A college degree is still worth it in 2025', sideA: 'Agree', sideB: 'Disagree', category: 'Career' },
