@@ -56,7 +56,7 @@ export default function TopicList({ onBack, onTopicSelect }: {
       </div>
 
       {/* Header */}
-     <div className="relative z-10 flex gap-2 px-6 py-4 overflow-x-auto [&::-webkit-scrollbar]:hidden [-ms-overflow-style:none] [scrollbar-width:none]">
+     <div className="no-scrollbar relative z-10 flex gap-2 px-6 py-4 overflow-x-auto">
         <button
           onClick={onBack}
           className="w-8 h-8 flex items-center justify-center rounded-lg bg-gray-900 hover:bg-gray-800 text-gray-400 hover:text-white transition"
