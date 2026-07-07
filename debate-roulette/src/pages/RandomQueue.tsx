@@ -138,13 +138,13 @@ export default function RandomQueue({
 
             {/* Status */}
             <motion.p
-              key={statusText()}
-              initial={{ opacity: 0 }}
-              animate={{ opacity: 1 }}
-              className="text-gray-600 text-sm mb-2"
-            >
-              {statusText()}
-            </motion.p>
+  key={statusText()}
+  initial={{ opacity: 0 }}
+  animate={{ opacity: 1 }}
+  className="text-gray-400 text-sm mb-2"
+>
+  {statusText()}
+</motion.p>
             <p className="text-gray-800 text-xs mb-8 font-mono">{seconds}s</p>
 
             {/* Progress dots */}
@@ -180,12 +180,12 @@ export default function RandomQueue({
               )}
             </AnimatePresence>
 
-            <button
-              onClick={handleCancel}
-              className="text-gray-600 hover:text-white text-sm transition px-4 py-2 rounded-lg hover:bg-gray-900"
-            >
-              Cancel search
-            </button>
+           <button
+  onClick={handleCancel}
+  className="text-gray-400 hover:text-white text-sm font-medium transition px-5 py-2.5 rounded-lg border border-white/10 hover:border-white/20 hover:bg-gray-900"
+>
+  Cancel search
+</button>
           </motion.div>
         ) : (
           <motion.div
