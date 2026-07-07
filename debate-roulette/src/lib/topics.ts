@@ -11,14 +11,14 @@ export const TOPICS: Record<string, { title: string; sideA: string; sideB: strin
 
   // Entertainment
   t9: { title: 'Harry Potter is the best movie series', sideA: 'Agree', sideB: 'Disagree', category: 'Entertainment' },
-  t10: { title: 'Marvel is the most successful cinematic universe', sideA: 'Agree', sideB: 'Disagree', category: 'Entertainment' },
+  t10: { title: 'Marvel movies have gotten worse since Endgame', sideA: 'Agree', sideB: 'Disagree', category: 'Entertainment' },
   t11: { title: 'Scorsese\'s filmmaking has the strongest impact', sideA: 'Agree', sideB: 'Disagree', category: 'Entertainment' },
   t12: { title: 'Nolan is the best modern filmmaker', sideA: 'Agree', sideB: 'Disagree', category: 'Entertainment' },
   t13: { title: 'Christopher Reeve\'s Superman is the most iconic superhero performance', sideA: 'Agree', sideB: 'Disagree', category: 'Entertainment' },
   t14: { title: 'Baahubali is the most impactful Indian franchise', sideA: 'Agree', sideB: 'Disagree', category: 'Entertainment' },
   t15: { title: 'The Office is the most rewatchable sitcom', sideA: 'Agree', sideB: 'Disagree', category: 'Entertainment' },
   t16: { title: 'Breaking Bad is the best TV series', sideA: 'Agree', sideB: 'Disagree', category: 'Entertainment' },
-  t17: { title: 'Game of Thrones had the biggest cultural impact', sideA: 'Agree', sideB: 'Disagree', category: 'Entertainment' },
+  t17: { title: 'Game of Thrones\' ending ruined the whole series', sideA: 'Agree', sideB: 'Disagree', category: 'Entertainment' },
   t18: { title: 'Friends is the most beloved comfort show', sideA: 'Agree', sideB: 'Disagree', category: 'Entertainment' },
   t19: { title: 'DC has the strongest iconic characters', sideA: 'Agree', sideB: 'Disagree', category: 'Entertainment' },
   t20: { title: 'Interstellar is a better film than Inception', sideA: 'Agree', sideB: 'Disagree', category: 'Entertainment' },
@@ -33,7 +33,7 @@ export const TOPICS: Record<string, { title: string; sideA: string; sideB: strin
   t27: { title: 'BTS has the strongest fandom in music', sideA: 'Agree', sideB: 'Disagree', category: 'Music' },
   t28: { title: 'Taylor Swift is the most powerful pop artist', sideA: 'Agree', sideB: 'Disagree', category: 'Music' },
   t29: { title: 'Arijit Singh is the most loved playback singer', sideA: 'Agree', sideB: 'Disagree', category: 'Music' },
-  t30: { title: 'The Beatles are the most influential band', sideA: 'Agree', sideB: 'Disagree', category: 'Music' },
+  t30: { title: 'The Beatles are overrated compared to their peers', sideA: 'Agree', sideB: 'Disagree', category: 'Music' },
   t31: { title: 'Eminem is the most impactful rapper', sideA: 'Agree', sideB: 'Disagree', category: 'Music' },
   t32: { title: 'A.R. Rahman is the most visionary composer', sideA: 'Agree', sideB: 'Disagree', category: 'Music' },
   t33: { title: 'Kendrick Lamar is a better artist than Drake', sideA: 'Agree', sideB: 'Disagree', category: 'Music' },
@@ -63,11 +63,11 @@ export const TOPICS: Record<string, { title: string; sideA: string; sideB: strin
 
   // Literature
   t53: { title: 'Dostoevsky has the deepest impact on literature', sideA: 'Agree', sideB: 'Disagree', category: 'Literature' },
-  t54: { title: 'Shakespeare is the greatest writer', sideA: 'Agree', sideB: 'Disagree', category: 'Literature' },
+  t54: { title: 'Shakespeare is overrated in school curriculums', sideA: 'Agree', sideB: 'Disagree', category: 'Literature' },
   t55: { title: 'Tolstoy wrote the most powerful novels', sideA: 'Agree', sideB: 'Disagree', category: 'Literature' },
   t56: { title: 'Kafka\'s impact on literature is unmatched', sideA: 'Agree', sideB: 'Disagree', category: 'Literature' },
   t57: { title: 'Jane Austen is the sharpest social observer in literature', sideA: 'Agree', sideB: 'Disagree', category: 'Literature' },
-  t58: { title: 'J.K. Rowling built the most devoted book fanbase', sideA: 'Agree', sideB: 'Disagree', category: 'Literature' },
+  t58: { title: 'J.K. Rowling\'s public comments have damaged Harry Potter\'s legacy', sideA: 'Agree', sideB: 'Disagree', category: 'Literature' },
   t59: { title: 'Reading fiction makes you a more empathetic person', sideA: 'Agree', sideB: 'Disagree', category: 'Literature' },
 
   // Philosophy
@@ -98,7 +98,7 @@ export const TOPICS: Record<string, { title: string; sideA: string; sideB: strin
   t78: { title: 'Fanfiction is better than many official sequels', sideA: 'Agree', sideB: 'Disagree', category: 'Fandom' },
   t79: { title: 'Fanfiction should stay true to the original characters', sideA: 'Agree', sideB: 'Disagree', category: 'Fandom' },
   t80: { title: 'Rewriting a story in a completely different setting is more fun than staying loyal to canon', sideA: 'Agree', sideB: 'Disagree', category: 'Fandom' },
-  t81: { title: 'Harry Potter has one of the biggest fanbases ever', sideA: 'Agree', sideB: 'Disagree', category: 'Fandom' },
+  t81: { title: 'Harry Potter wouldn\'t succeed if it launched today', sideA: 'Agree', sideB: 'Disagree', category: 'Fandom' },
   t82: { title: 'Book fandoms create more engagement than publishing campaigns', sideA: 'Agree', sideB: 'Disagree', category: 'Fandom' },
   t83: { title: 'Reader communities have more power now than traditional critics', sideA: 'Agree', sideB: 'Disagree', category: 'Fandom' },
 
@@ -112,7 +112,7 @@ export const TOPICS: Record<string, { title: string; sideA: string; sideB: strin
 
   // Science
   t90: { title: 'Curiosity matters more than intelligence for a scientist\'s success', sideA: 'Agree', sideB: 'Disagree', category: 'Science' },
-  t91: { title: 'Newton is the most foundational scientist', sideA: 'Agree', sideB: 'Disagree', category: 'Science' },
+  t91: { title: 'Physics hasn\'t had a breakthrough as important as Newton\'s since', sideA: 'Agree', sideB: 'Disagree', category: 'Science' },
   t92: { title: 'Science today moves too slowly because of bureaucracy, not a lack of ideas', sideA: 'Agree', sideB: 'Disagree', category: 'Science' },
   t93: { title: 'Space exploration deserves more funding than it currently gets', sideA: 'Agree', sideB: 'Disagree', category: 'Science' },
   t94: { title: 'Mental health deserves the same medical priority as physical health', sideA: 'Agree', sideB: 'Disagree', category: 'Science' },
