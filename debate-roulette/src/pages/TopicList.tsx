@@ -1,195 +1,159 @@
-import { useState } from 'react'
-import { motion, AnimatePresence } from 'framer-motion'
-import { TOPICS } from '../lib/topics'
+export const TOPICS: Record<string, { title: string; sideA: string; sideB: string; category: string }> = {
+  // Sports
+  t1: { title: 'Virat Kohli is the best Test captain', sideA: 'Agree', sideB: 'Disagree', category: 'Sports' },
+  t2: { title: 'MS Dhoni is the greatest finisher', sideA: 'Agree', sideB: 'Disagree', category: 'Sports' },
+  t3: { title: 'Messi is the greatest footballer', sideA: 'Agree', sideB: 'Disagree', category: 'Sports' },
+  t4: { title: 'Cristiano Ronaldo is the most complete modern footballer', sideA: 'Agree', sideB: 'Disagree', category: 'Sports' },
+  t5: { title: 'Federer is the most elegant tennis player', sideA: 'Agree', sideB: 'Disagree', category: 'Sports' },
+  t6: { title: 'LeBron James is the most impactful NBA player', sideA: 'Agree', sideB: 'Disagree', category: 'Sports' },
+  t7: { title: 'Cricket is more skillful than Football', sideA: 'Agree', sideB: 'Disagree', category: 'Sports' },
+  t8: { title: 'T20 is ruining Test cricket', sideA: 'Agree', sideB: 'Disagree', category: 'Sports' },
 
-const CATEGORY_ICONS: Record<string, string> = {
-  All: '🌐',
-  Sports: '⚽',
-  Entertainment: '🎬',
-  Music: '🎵',
-  Technology: '💻',
-  Gaming: '🎮',
-  Literature: '📖',
-  Philosophy: '🧠',
-  History: '🏛️',
-  Politics: '🗳️',
-  Fandom: '✨',
-  Astrology: '🔮',
-  Science: '🔬',
-  Fiction: '📚',
-  Lifestyle: '🌿',
-  Career: '💼',
+  // Entertainment
+  t9: { title: 'Harry Potter is the best movie series', sideA: 'Agree', sideB: 'Disagree', category: 'Entertainment' },
+  t10: { title: 'Marvel movies have gotten worse since Endgame', sideA: 'Agree', sideB: 'Disagree', category: 'Entertainment' },
+  t11: { title: 'Scorsese\'s filmmaking has the strongest impact', sideA: 'Agree', sideB: 'Disagree', category: 'Entertainment' },
+  t12: { title: 'Nolan is the best modern filmmaker', sideA: 'Agree', sideB: 'Disagree', category: 'Entertainment' },
+  t13: { title: 'Christopher Reeve\'s Superman is the most iconic superhero performance', sideA: 'Agree', sideB: 'Disagree', category: 'Entertainment' },
+  t14: { title: 'Baahubali is the most impactful Indian franchise', sideA: 'Agree', sideB: 'Disagree', category: 'Entertainment' },
+  t15: { title: 'The Office is the most rewatchable sitcom', sideA: 'Agree', sideB: 'Disagree', category: 'Entertainment' },
+  t16: { title: 'Breaking Bad is the best TV series', sideA: 'Agree', sideB: 'Disagree', category: 'Entertainment' },
+  t17: { title: 'Game of Thrones\' ending ruined the whole series', sideA: 'Agree', sideB: 'Disagree', category: 'Entertainment' },
+  t18: { title: 'Friends is the most beloved comfort show', sideA: 'Agree', sideB: 'Disagree', category: 'Entertainment' },
+  t19: { title: 'DC has the strongest iconic characters', sideA: 'Agree', sideB: 'Disagree', category: 'Entertainment' },
+  t20: { title: 'Interstellar is a better film than Inception', sideA: 'Agree', sideB: 'Disagree', category: 'Entertainment' },
+  t21: { title: 'Anime has better storytelling than Western shows', sideA: 'Agree', sideB: 'Disagree', category: 'Entertainment' },
+  t22: { title: 'Batman is the best superhero', sideA: 'Agree', sideB: 'Disagree', category: 'Entertainment' },
+  t23: { title: 'Spider-Man is the most relatable superhero', sideA: 'Agree', sideB: 'Disagree', category: 'Entertainment' },
+  t24: { title: 'One Piece is the greatest manga', sideA: 'Agree', sideB: 'Disagree', category: 'Entertainment' },
+  t25: { title: 'Naruto has the strongest underdog impact', sideA: 'Agree', sideB: 'Disagree', category: 'Entertainment' },
+  t26: { title: 'A great live performer is more impressive than a great studio artist', sideA: 'Agree', sideB: 'Disagree', category: 'Entertainment' },
+
+  // Music
+  t27: { title: 'BTS has the strongest fandom in music', sideA: 'Agree', sideB: 'Disagree', category: 'Music' },
+  t28: { title: 'Taylor Swift is the most powerful pop artist', sideA: 'Agree', sideB: 'Disagree', category: 'Music' },
+  t29: { title: 'Arijit Singh is the most loved playback singer', sideA: 'Agree', sideB: 'Disagree', category: 'Music' },
+  t30: { title: 'The Beatles are overrated compared to their peers', sideA: 'Agree', sideB: 'Disagree', category: 'Music' },
+  t31: { title: 'Eminem is the most impactful rapper', sideA: 'Agree', sideB: 'Disagree', category: 'Music' },
+  t32: { title: 'A.R. Rahman is the most visionary composer', sideA: 'Agree', sideB: 'Disagree', category: 'Music' },
+  t33: { title: 'Kendrick Lamar is a better artist than Drake', sideA: 'Agree', sideB: 'Disagree', category: 'Music' },
+  t34: { title: 'A song\'s lyrics matter more than its melody', sideA: 'Agree', sideB: 'Disagree', category: 'Music' },
+
+  // Technology
+  t35: { title: 'iPhone users get better value than they think', sideA: 'Agree', sideB: 'Disagree', category: 'Technology' },
+  t36: { title: 'Android is the best mobile platform', sideA: 'Agree', sideB: 'Disagree', category: 'Technology' },
+  t37: { title: 'Tesla has the strongest EV fanbase', sideA: 'Agree', sideB: 'Disagree', category: 'Technology' },
+  t38: { title: 'Google has the biggest tech influence', sideA: 'Agree', sideB: 'Disagree', category: 'Technology' },
+  t39: { title: 'Free, open-source software will eventually replace paid software', sideA: 'Agree', sideB: 'Disagree', category: 'Technology' },
+  t40: { title: 'Every major tech breakthrough right now depends on one company: NVIDIA', sideA: 'Agree', sideB: 'Disagree', category: 'Technology' },
+  t41: { title: 'Elon Musk has the biggest tech fanbase', sideA: 'Agree', sideB: 'Disagree', category: 'Technology' },
+  t42: { title: 'AI will do more good than harm for humanity', sideA: 'Agree', sideB: 'Disagree', category: 'Technology' },
+  t43: { title: 'Social media does more harm than good to society', sideA: 'Agree', sideB: 'Disagree', category: 'Technology' },
+  t44: { title: 'A 4-day work week would make people more productive, not less', sideA: 'Agree', sideB: 'Disagree', category: 'Technology' },
+
+  // Gaming
+  t45: { title: 'PlayStation has the best gaming legacy', sideA: 'Agree', sideB: 'Disagree', category: 'Gaming' },
+  t46: { title: 'Retro games are better designed than most games today', sideA: 'Agree', sideB: 'Disagree', category: 'Gaming' },
+  t47: { title: 'Xbox is the best ecosystem for gamers', sideA: 'Agree', sideB: 'Disagree', category: 'Gaming' },
+  t48: { title: 'GTA is the most impactful game series', sideA: 'Agree', sideB: 'Disagree', category: 'Gaming' },
+  t49: { title: 'The Legend of Zelda is the best adventure franchise', sideA: 'Agree', sideB: 'Disagree', category: 'Gaming' },
+  t50: { title: 'Minecraft is the most influential game', sideA: 'Agree', sideB: 'Disagree', category: 'Gaming' },
+  t51: { title: 'PC gaming is superior to console gaming', sideA: 'Agree', sideB: 'Disagree', category: 'Gaming' },
+  t52: { title: 'Single player games are better than multiplayer', sideA: 'Agree', sideB: 'Disagree', category: 'Gaming' },
+
+  // Literature
+  t53: { title: 'Dostoevsky has the deepest impact on literature', sideA: 'Agree', sideB: 'Disagree', category: 'Literature' },
+  t54: { title: 'Shakespeare is overrated in school curriculums', sideA: 'Agree', sideB: 'Disagree', category: 'Literature' },
+  t55: { title: 'Tolstoy wrote the most powerful novels', sideA: 'Agree', sideB: 'Disagree', category: 'Literature' },
+  t56: { title: 'Kafka\'s impact on literature is unmatched', sideA: 'Agree', sideB: 'Disagree', category: 'Literature' },
+  t57: { title: 'Jane Austen is the sharpest social observer in literature', sideA: 'Agree', sideB: 'Disagree', category: 'Literature' },
+  t58: { title: 'J.K. Rowling\'s public comments have damaged Harry Potter\'s legacy', sideA: 'Agree', sideB: 'Disagree', category: 'Literature' },
+  t59: { title: 'Reading fiction makes you a more empathetic person', sideA: 'Agree', sideB: 'Disagree', category: 'Literature' },
+
+  // Philosophy
+  t60: { title: 'Overthinking causes more problems than it solves', sideA: 'Agree', sideB: 'Disagree', category: 'Philosophy' },
+  t61: { title: 'Nietzsche is the most provocative philosopher', sideA: 'Agree', sideB: 'Disagree', category: 'Philosophy' },
+  t62: { title: 'Aristotle is the most useful philosopher', sideA: 'Agree', sideB: 'Disagree', category: 'Philosophy' },
+  t63: { title: 'Plato is the most foundational philosopher', sideA: 'Agree', sideB: 'Disagree', category: 'Philosophy' },
+  t64: { title: 'Stoicism has the strongest modern appeal', sideA: 'Agree', sideB: 'Disagree', category: 'Philosophy' },
+  t65: { title: 'Existentialism is the most relatable philosophy', sideA: 'Agree', sideB: 'Disagree', category: 'Philosophy' },
+
+  // History
+  t66: { title: 'Gandhi had the biggest moral impact in history', sideA: 'Agree', sideB: 'Disagree', category: 'History' },
+  t67: { title: 'Napoleon is the most fascinating historical figure', sideA: 'Agree', sideB: 'Disagree', category: 'History' },
+  t68: { title: 'Alexander the Great is the most overrated conqueror in history', sideA: 'Agree', sideB: 'Disagree', category: 'History' },
+  t69: { title: 'Churchill is history\'s most memorable wartime leader', sideA: 'Agree', sideB: 'Disagree', category: 'History' },
+  t70: { title: 'Julius Caesar is the most iconic Roman figure', sideA: 'Agree', sideB: 'Disagree', category: 'History' },
+  t71: { title: 'The internet has changed society more than any invention before it', sideA: 'Agree', sideB: 'Disagree', category: 'History' },
+
+  // Politics
+  t72: { title: 'Strong leaders matter more than party labels', sideA: 'Agree', sideB: 'Disagree', category: 'Politics' },
+  t73: { title: 'Democracy works best when voters judge results, not speeches', sideA: 'Agree', sideB: 'Disagree', category: 'Politics' },
+  t74: { title: 'How a candidate makes you feel matters more than their actual policies', sideA: 'Agree', sideB: 'Disagree', category: 'Politics' },
+  t75: { title: 'Politicians should be judged more on their private character than their public policies', sideA: 'Agree', sideB: 'Disagree', category: 'Politics' },
+  t76: { title: 'Identity politics matters more than critics admit', sideA: 'Agree', sideB: 'Disagree', category: 'Politics' },
+  t77: { title: 'Economic policy creates more real impact than ideological slogans', sideA: 'Agree', sideB: 'Disagree', category: 'Politics' },
+
+  // Fandom
+  t78: { title: 'Fanfiction is better than many official sequels', sideA: 'Agree', sideB: 'Disagree', category: 'Fandom' },
+  t79: { title: 'Fanfiction should stay true to the original characters', sideA: 'Agree', sideB: 'Disagree', category: 'Fandom' },
+  t80: { title: 'Rewriting a story in a completely different setting is more fun than staying loyal to canon', sideA: 'Agree', sideB: 'Disagree', category: 'Fandom' },
+  t81: { title: 'Harry Potter wouldn\'t succeed if it launched today', sideA: 'Agree', sideB: 'Disagree', category: 'Fandom' },
+  t82: { title: 'Book fandoms create more engagement than publishing campaigns', sideA: 'Agree', sideB: 'Disagree', category: 'Fandom' },
+  t83: { title: 'Reader communities have more power now than traditional critics', sideA: 'Agree', sideB: 'Disagree', category: 'Fandom' },
+
+  // Astrology
+  t84: { title: 'People who don\'t believe in astrology are still influenced by it', sideA: 'Agree', sideB: 'Disagree', category: 'Astrology' },
+  t85: { title: 'Your zodiac sign says more about you than people admit', sideA: 'Agree', sideB: 'Disagree', category: 'Astrology' },
+  t86: { title: 'Most people who follow astrology don\'t actually believe in it — they just enjoy it', sideA: 'Agree', sideB: 'Disagree', category: 'Astrology' },
+  t87: { title: 'Celebrity astrologers have the biggest reach', sideA: 'Agree', sideB: 'Disagree', category: 'Astrology' },
+  t88: { title: 'Astrology gives people meaning, not just predictions', sideA: 'Agree', sideB: 'Disagree', category: 'Astrology' },
+  t89: { title: 'Zodiac-based fan culture is stronger than people think', sideA: 'Agree', sideB: 'Disagree', category: 'Astrology' },
+
+  // Science
+  t90: { title: 'Curiosity matters more than intelligence for a scientist\'s success', sideA: 'Agree', sideB: 'Disagree', category: 'Science' },
+  t91: { title: 'Physics hasn\'t had a breakthrough as important as Newton\'s since', sideA: 'Agree', sideB: 'Disagree', category: 'Science' },
+  t92: { title: 'Science today moves too slowly because of bureaucracy, not a lack of ideas', sideA: 'Agree', sideB: 'Disagree', category: 'Science' },
+  t93: { title: 'Space exploration deserves more funding than it currently gets', sideA: 'Agree', sideB: 'Disagree', category: 'Science' },
+  t94: { title: 'Mental health deserves the same medical priority as physical health', sideA: 'Agree', sideB: 'Disagree', category: 'Science' },
+  t95: { title: 'A scientific discovery only really matters once it changes everyday life', sideA: 'Agree', sideB: 'Disagree', category: 'Science' },
+
+  // Fiction
+  t96: { title: 'Fantasy is the best fiction genre', sideA: 'Agree', sideB: 'Disagree', category: 'Fiction' },
+  t97: { title: 'Dystopian fiction has the strongest impact', sideA: 'Agree', sideB: 'Disagree', category: 'Fiction' },
+  t98: { title: 'Character-driven fiction is better than plot-driven fiction', sideA: 'Agree', sideB: 'Disagree', category: 'Fiction' },
+  t99: { title: 'A long-running series builds a stronger connection than a single standalone story', sideA: 'Agree', sideB: 'Disagree', category: 'Fiction' },
+  t100: { title: 'Realistic fiction is more powerful than fantasy', sideA: 'Agree', sideB: 'Disagree', category: 'Fiction' },
+  t101: { title: 'Epic fiction has the greatest emotional payoff', sideA: 'Agree', sideB: 'Disagree', category: 'Fiction' },
+
+  // Lifestyle
+  t102: { title: 'Discipline matters more than motivation when building a habit', sideA: 'Agree', sideB: 'Disagree', category: 'Lifestyle' },
+  t103: { title: 'Being an early bird is better than being a night owl', sideA: 'Agree', sideB: 'Disagree', category: 'Lifestyle' },
+  t104: { title: 'A vegetarian diet is healthier than a non-vegetarian one', sideA: 'Agree', sideB: 'Disagree', category: 'Lifestyle' },
+  t105: { title: 'Money can\'t buy happiness', sideA: 'Agree', sideB: 'Disagree', category: 'Lifestyle' },
+
+  // Career
+  t106: { title: 'A college degree is still worth it in 2025', sideA: 'Agree', sideB: 'Disagree', category: 'Career' },
+  t107: { title: 'Job security is more important than startup risk at 25', sideA: 'Agree', sideB: 'Disagree', category: 'Career' },
+  t108: { title: 'You should follow your passion even if it pays less', sideA: 'Agree', sideB: 'Disagree', category: 'Career' },
+  t109: { title: 'Being an entrepreneur is better than being an employee', sideA: 'Agree', sideB: 'Disagree', category: 'Career' },
 }
 
-const CATEGORIES = ['All', ...Array.from(new Set(Object.values(TOPICS).map(t => t.category)))]
-
-const TOPICS_LIST = Object.entries(TOPICS).map(([id, t]) => ({ id, ...t }))
-
-export default function TopicList({ onBack, onTopicSelect }: {
-  onBack: () => void
-  onTopicSelect: (topicId: string, side: 'A' | 'B') => void
-}) {
-  const [selectedCategory, setSelectedCategory] = useState('All')
-  const [selectedTopic, setSelectedTopic] = useState<string | null>(null)
-  const [searchQuery, setSearchQuery] = useState('')
-
-  const filtered = TOPICS_LIST.filter(t => {
-    const matchesCategory = selectedCategory === 'All' || t.category === selectedCategory
-    const matchesSearch = t.title.toLowerCase().includes(searchQuery.toLowerCase())
-    return matchesCategory && matchesSearch
-  })
-
-  const handleTopicClick = (id: string) => {
-    setSelectedTopic(selectedTopic === id ? null : id)
-  }
-
-  const handleJoin = (topicId: string, side: 'A' | 'B') => {
-    onTopicSelect(topicId, side)
-  }
-
-  return (
-    <div className="min-h-screen bg-gray-950 text-white flex flex-col">
-
-      {/* Background */}
-      <div className="fixed inset-0 pointer-events-none">
-        <div className="absolute top-0 left-1/2 -translate-x-1/2 w-[500px] h-[200px] bg-indigo-600 opacity-5 blur-3xl rounded-full" />
-      </div>
-
-      {/* Header — normal, no scroll */}
-      <div className="relative z-10 flex items-center gap-3 px-6 py-4 border-b border-white/5">
-        <button
-          onClick={onBack}
-          className="w-8 h-8 flex items-center justify-center rounded-lg bg-gray-900 hover:bg-gray-800 text-gray-400 hover:text-white transition"
-        >
-          ←
-        </button>
-        <div>
-          <h1 className="font-bold text-lg">Choose a Topic</h1>
-          <p className="text-gray-500 text-xs">{TOPICS_LIST.length} statements to debate</p>
-        </div>
-      </div>
-
-      {/* Search */}
-      <div className="relative z-10 px-6 pt-4">
-        <input
-          type="text"
-          value={searchQuery}
-          onChange={e => setSearchQuery(e.target.value)}
-          placeholder="Search topics..."
-          className="w-full bg-gray-900/80 border border-white/5 rounded-xl px-4 py-2.5 text-sm text-white placeholder-gray-600 focus:outline-none focus:border-indigo-500/50 transition"
-        />
-      </div>
-
-      {/* Category Filter — this is the only scrollable row */}
-      <div className="no-scrollbar relative z-10 flex gap-2 px-6 py-4 overflow-x-auto">
-        {CATEGORIES.map(cat => (
-          <button
-            key={cat}
-            onClick={() => { setSelectedCategory(cat); setSelectedTopic(null) }}
-            className={`flex items-center gap-1.5 px-4 py-2 rounded-full text-sm font-medium whitespace-nowrap transition ${
-              selectedCategory === cat
-                ? 'bg-indigo-600 text-white shadow-lg shadow-indigo-500/20'
-                : 'bg-gray-900 text-gray-400 hover:bg-gray-800 border border-white/5'
-            }`}
-          >
-            <span>{CATEGORY_ICONS[cat] || '📌'}</span>
-            <span>{cat}</span>
-          </button>
-        ))}
-      </div>
-
-      {/* Topic List */}
-      <div className="relative z-10 flex-1 overflow-y-auto px-6 flex flex-col gap-3 pb-6">
-        {filtered.length === 0 && (
-          <p className="text-gray-600 text-sm text-center mt-8">No topics match your search.</p>
-        )}
-        {filtered.map((t, i) => {
-          const isExpanded = selectedTopic === t.id
-          return (
-            <motion.div
-              key={t.id}
-              initial={{ opacity: 0, y: 10 }}
-              animate={{ opacity: 1, y: 0 }}
-              transition={{ delay: Math.min(i * 0.02, 0.3) }}
-            >
-              <div
-                className={`rounded-2xl border transition-all overflow-hidden ${
-                  isExpanded
-                    ? 'border-indigo-500/50 bg-indigo-950/50 shadow-lg shadow-indigo-500/10'
-                    : 'border-white/5 bg-gray-900/80 hover:border-white/10 hover:bg-gray-900'
-                }`}
-              >
-                <button
-                  onClick={() => handleTopicClick(t.id)}
-                  className="w-full p-5 text-left"
-                >
-                  <div className="flex items-start justify-between gap-3">
-                    <div className="flex-1">
-                      <span className={`text-xs font-medium px-2 py-0.5 rounded-full mb-2 inline-block ${
-                        isExpanded ? 'bg-indigo-500/20 text-indigo-400' : 'bg-gray-800 text-gray-500'
-                      }`}>
-                        {CATEGORY_ICONS[t.category] || '📌'} {t.category}
-                      </span>
-                      <p className="font-semibold text-sm leading-relaxed text-white">
-                        {t.title}
-                      </p>
-                    </div>
-                    <motion.span
-                      animate={{ rotate: isExpanded ? 180 : 0 }}
-                      transition={{ duration: 0.2 }}
-                      className="text-gray-600 mt-1 flex-shrink-0"
-                    >
-                      ↓
-                    </motion.span>
-                  </div>
-                </button>
-
-                <AnimatePresence>
-                  {isExpanded && (
-                    <motion.div
-                      initial={{ height: 0, opacity: 0 }}
-                      animate={{ height: 'auto', opacity: 1 }}
-                      exit={{ height: 0, opacity: 0 }}
-                      transition={{ duration: 0.2 }}
-                      className="overflow-hidden"
-                    >
-                      <div className="px-5 pb-5">
-                        <p className="text-xs text-gray-500 mb-3">What's your take?</p>
-                        <div className="grid grid-cols-2 gap-2 mb-3">
-                          <motion.button
-                            whileHover={{ scale: 1.02 }}
-                            whileTap={{ scale: 0.97 }}
-                            onClick={() => handleJoin(t.id, 'A')}
-                            className="py-3 rounded-xl font-semibold text-sm transition bg-green-600 hover:bg-green-500 text-white shadow-lg shadow-green-500/20 flex items-center justify-center gap-2"
-                          >
-                            <span>✓</span>
-                            <span>I Agree</span>
-                          </motion.button>
-                          <motion.button
-                            whileHover={{ scale: 1.02 }}
-                            whileTap={{ scale: 0.97 }}
-                            onClick={() => handleJoin(t.id, 'B')}
-                            className="py-3 rounded-xl font-semibold text-sm transition bg-red-600 hover:bg-red-500 text-white shadow-lg shadow-red-500/20 flex items-center justify-center gap-2"
-                          >
-                            <span>✗</span>
-                            <span>I Disagree</span>
-                          </motion.button>
-                        </div>
-                        <button
-                          onClick={() => handleJoin(t.id, Math.random() > 0.5 ? 'A' : 'B')}
-                          className="w-full py-2 rounded-xl text-xs text-gray-500 hover:text-gray-300 bg-gray-800/50 hover:bg-gray-800 transition border border-white/5"
-                        >
-                          🎲 Surprise me — pick a random side
-                        </button>
-                      </div>
-                    </motion.div>
-                  )}
-                </AnimatePresence>
-              </div>
-            </motion.div>
-          )
-        })}
-      </div>
-    </div>
-  )
+// Suggestions by category — more maintainable than per-topic at this scale
+export const CATEGORY_SUGGESTIONS: Record<string, string[]> = {
+  Sports: ['What makes someone the GOAT?', 'How do you judge greatness — stats or moments?', 'Which era do you think was toughest?'],
+  Entertainment: ['What made this stick with you?', 'How does it compare to today\'s standards?', 'What\'s the moment that defines it for you?'],
+  Music: ['What makes an artist\'s impact last?', 'Does the fanbase reflect the music\'s quality?', 'Which era of their work proves this best?'],
+  Technology: ['What does loyalty to a brand actually mean?', 'Would you switch if price wasn\'t a factor?', 'What matters more — ecosystem or specs?'],
+  Gaming: ['What makes a game "timeless"?', 'Which title best proves this?', 'Does nostalgia affect your opinion here?'],
+  Literature: ['What makes a writer\'s influence last centuries?', 'Which work best proves this?', 'Is difficulty a feature or a flaw?'],
+  Philosophy: ['What makes an idea "foundational"?', 'How does this apply to modern life?', 'Do you actually agree with their conclusions?'],
+  History: ['What makes a historical figure "impactful"?', 'How do you separate legacy from myth?', 'Would history judge them differently today?'],
+  Politics: ['What matters more to you — policy or personality?', 'How do you evaluate this fairly?', 'What would change your mind here?'],
+  Fandom: ['What makes fan-created content valuable?', 'Where do you draw the line on canon?', 'What\'s a fandom moment that surprised you?'],
+  Astrology: ['Do you engage with this seriously or casually?', 'What draws people to it, in your view?', 'Has it ever been accurate for you?'],
+  Science: ['What makes a discovery "foundational"?', 'How do you weigh impact vs originality?', 'What\'s a breakthrough that changed how you think?'],
+  Fiction: ['What makes a story stay with you?', 'Do you prefer being surprised or moved?', 'What\'s a book or show that proves your point?'],
+  Lifestyle: ['What does your own experience tell you?', 'What would change your mind here?', 'What\'s the hidden tradeoff people don\'t talk about?'],
+  Career: ['What would you tell your younger self?', 'What\'s the real tradeoff people don\'t admit?', 'Has your view changed with experience?'],
 }
