@@ -1,4 +1,4 @@
-import { useEffect, useState } from 'react'
+import { useEffect, useState, useRef } from 'react'
 import { doc, getDoc, onSnapshot, collection, query, orderBy, limit } from 'firebase/firestore'
 import { db } from '../lib/firebase'
 import { useAuth } from '../hooks/useAuth'
@@ -9,10 +9,72 @@ import ConversationRoom from './ConversationRoom'
 import PostConversation from './PostConversation'
 import Profile from './Profile'
 import RandomQueue from './RandomQueue'
-import { motion } from 'framer-motion'
+import { motion, useMotionValue, useTransform, useSpring } from 'framer-motion'
 import { TOPICS } from '../lib/topics'
 
 type Screen = 'home' | 'topics' | 'queue' | 'random' | 'conversation' | 'post' | 'profile'
+
+// Reusable 3D tilt wrapper
+function TiltButton({
+  children,
+  className,
+  onClick,
+  delay = 0,
+}: {
+  children: React.ReactNode
+  className?: string
+  onClick?: () => void
+  delay?: number
+}) {
+  const ref = useRef<HTMLDivElement>(null)
+  const x = useMotionValue(0)
+  const y = useMotionValue(0)
+  const mouseXSpring = useSpring(x, { stiffness: 150, damping: 20 })
+  const mouseYSpring = useSpring(y, { stiffness: 150, damping: 20 })
+  const rotateX = useTransform(mouseYSpring, [-0.5, 0.5], ['6deg', '-6deg'])
+  const rotateY = useTransform(mouseXSpring, [-0.5, 0.5], ['-6deg', '6deg'])
+
+  const handleMouseMove = (e: React.MouseEvent<HTMLDivElement>) => {
+    if (!ref.current) return
+    const rect = ref.current.getBoundingClientRect()
+    const xPct = (e.clientX - rect.left) / rect.width - 0.5
+    const yPct = (e.clientY - rect.top) / rect.height - 0.5
+    x.set(xPct)
+    y.set(yPct)
+  }
+
+  const handleMouseLeave = () => {
+    x.set(0)
+    y.set(0)
+  }
+
+  return (
+    <motion.div
+      initial={{ opacity: 0, y: 20 }}
+      animate={{ opacity: 1, y: 0 }}
+      transition={{ delay, duration: 0.4 }}
+      style={{ perspective: 1000 }}
+    >
+      <motion.div
+        ref={ref}
+        onMouseMove={handleMouseMove}
+        onMouseLeave={handleMouseLeave}
+        onClick={onClick}
+        whileTap={{ scale: 0.98 }}
+        style={{
+          rotateX,
+          rotateY,
+          transformStyle: 'preserve-3d',
+        }}
+        className={className}
+      >
+        <div style={{ transform: 'translateZ(30px)' }}>
+          {children}
+        </div>
+      </motion.div>
+    </motion.div>
+  )
+}
 
 export default function Home() {
   const { user } = useAuth()
@@ -203,15 +265,11 @@ export default function Home() {
         {/* Mode Cards */}
         <div className="w-full max-w-lg flex flex-col gap-4">
 
-          {/* Random — Primary */}
-          <motion.button
-            initial={{ opacity: 0, y: 20 }}
-            animate={{ opacity: 1, y: 0 }}
-            transition={{ delay: 0.1, duration: 0.4 }}
-            whileHover={{ scale: 1.02, y: -2 }}
-            whileTap={{ scale: 0.98 }}
+          {/* Random — Primary, with 3D tilt */}
+          <TiltButton
             onClick={() => setScreen('random')}
-            className="relative overflow-hidden bg-indigo-600 hover:bg-indigo-500 transition-all rounded-2xl p-6 text-left group"
+            delay={0.1}
+            className="relative overflow-hidden bg-indigo-600 hover:bg-indigo-500 transition-colors rounded-2xl p-6 text-left cursor-pointer group"
           >
             <div className="absolute inset-0 bg-gradient-to-br from-indigo-500 to-indigo-700 opacity-0 group-hover:opacity-100 transition-opacity" />
             <div className="relative z-10">
@@ -226,32 +284,28 @@ export default function Home() {
                 Get matched with someone who shares your interests. No topic, just a real conversation.
               </div>
             </div>
-          </motion.button>
+          </TiltButton>
 
-          {/* Topic Mode — Secondary */}
-          <motion.button
-            initial={{ opacity: 0, y: 20 }}
-            animate={{ opacity: 1, y: 0 }}
-            transition={{ delay: 0.2, duration: 0.4 }}
-            whileHover={{ scale: 1.02, y: -2 }}
-            whileTap={{ scale: 0.98 }}
+          {/* Topic Mode — Secondary, with 3D tilt */}
+          <TiltButton
             onClick={() => setScreen('topics')}
-            className="relative overflow-hidden bg-gray-900 hover:bg-gray-800 transition-all rounded-2xl p-6 text-left border border-white/5 group"
+            delay={0.2}
+            className="relative overflow-hidden bg-gray-900 hover:bg-gray-800 transition-colors rounded-2xl p-6 text-left border border-white/5 cursor-pointer group"
           >
             <div className="absolute inset-0 bg-gradient-to-br from-gray-800 to-gray-900 opacity-0 group-hover:opacity-100 transition-opacity" />
             <div className="relative z-10">
               <div className="flex items-center justify-between mb-3">
                 <span className="text-3xl">🗣️</span>
                 <span className="text-xs font-semibold bg-white/10 px-3 py-1 rounded-full text-gray-400">
-  {Object.keys(TOPICS).length} Topics
-</span>
+                  {Object.keys(TOPICS).length} Topics
+                </span>
               </div>
               <div className="font-bold text-xl mb-1">Topic Mode</div>
               <div className="text-gray-400 text-sm leading-relaxed">
                 Pick a statement, choose your stance, get matched with someone who disagrees.
               </div>
             </div>
-          </motion.button>
+          </TiltButton>
         </div>
 
         {/* Interests */}
